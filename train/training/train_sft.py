@@ -109,6 +109,8 @@ def main():
     ap.add_argument("--torch-compile", action="store_true", help="torch.compile 加速（冒烟验证后开）")
     ap.add_argument("--max-steps", type=int, default=-1, help=">0 时限制步数（冒烟用）")
     ap.add_argument("--no-think", action="store_true", help="模板 enable_thinking=false 空思考块注入（SFT3 起）")
+    ap.add_argument("--val", default=None, help="验证集 jsonl（assemble 分层抽出的 val.jsonl），不填则跳过 eval")
+    ap.add_argument("--eval-steps", type=int, default=500, help="验证集 loss 评估间隔（与 save-steps 对齐）")
     ap.add_argument("--seed", type=int, default=20261024)
     args = ap.parse_args()
 
@@ -117,6 +119,13 @@ def main():
     ds = SFTDataset(args.data, tok, args.max_len, no_think=args.no_think)
     if len(ds) == 0:
         raise SystemExit("数据集为空")
+    # 验证集与训练集同一模板化路径；val 分层抽出且 schedule 保留完整轨迹，
+    # 训练/验证同分布，eval_loss 才有监视意义（与 PT 线同一口径）
+    val_ds = None
+    if args.val:
+        val_ds = SFTDataset(args.val, tok, args.max_len, no_think=args.no_think)
+        if len(val_ds) == 0:
+            raise SystemExit("验证集为空")
     model = AutoModelForCausalLM.from_pretrained(
         args.model, dtype=torch.bfloat16, attn_implementation="sdpa",
     )
@@ -141,6 +150,8 @@ def main():
         max_steps=args.max_steps if args.max_steps > 0 else -1,
         bf16=True,
         logging_steps=args.logging_steps,
+        eval_strategy="steps" if val_ds is not None else "no",
+        eval_steps=args.eval_steps,
         save_strategy="steps",
         save_steps=args.save_steps,
         save_total_limit=3,
@@ -153,7 +164,7 @@ def main():
     )
     trainer_cls = ChunkedCETrainer if args.chunked_ce else Trainer
     kwargs = {"chunk_size": args.ce_chunk} if args.chunked_ce else {}
-    trainer = trainer_cls(model=model, args=ta, train_dataset=ds,
+    trainer = trainer_cls(model=model, args=ta, train_dataset=ds, eval_dataset=val_ds,
                           processing_class=tok, data_collator=make_collator(tok), **kwargs)
     trainer.train()
     trainer.save_model(os.path.join(args.out, "final"))

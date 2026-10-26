@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """SFT 数据拼装：六类合成 jsonl → 过滤 + 按计划占比降采样 → train.jsonl / val.jsonl。
 
-输入：data/sft/*.jsonl（合成产物，123,104 条，QC 已过）
-输出：data/train/<train.jsonl + val.jsonl + report.txt>（--profile sft3 时输出 data/train_sft3/）
+输入：data/sft/*.jsonl（合成产物，首轮 + 补合成 17M 累计，QC 已过）
+输出：data/train/<train.jsonl + val.jsonl + report.txt>（--profile sft3 时输出 data/train_sft3/，
+     sft17 时输出 data/train_sft17/）
 
 规则：
   1. message 类过滤选项式样本（assistant 内容含「选项/以下几种/供你选择/###/**」或以「这里」开头）
@@ -11,12 +12,16 @@
   3. profile=sft3（工具遵循率专项，docs/plans/SFT3工具遵循率专项.md）：
      - schedule 轨迹前插合成期 system 触发文本（SYNTH_SYS_SCHED1，与推理侧 CalendarTool.usagePrompt 逐字一致）；
      - 占比上限：schedule 全保留（≈37%）/ translate 1.3M / record 1.0M / summarize 0.5M / misc 0.15M / message 全保留；
-  4. 每类分层抽 2% 进 val.jsonl（schedule 保留完整工具调用轨迹）；
-  5. 全局 shuffle，seed 固定可复现。
+     - schedule 轨迹展开成多样本（tool_call 段独立成学习目标），sft17 同款展开；
+  4. profile=sft17（1.7B 主力线）：历史池 + 补合成 17M 全量拼装，总预算 ~28M est tokens，
+     占比贴近合成 share 25/25/20/15/10/5——translate/record 各 6.25M 降采样、
+     schedule 展开后 10M 上限基本全保留（工具调用是核心任务）、其余类全保留；
+  5. 每类分层抽 2% 进 val.jsonl（schedule 保留完整工具调用轨迹）；
+  6. 全局 shuffle，seed 固定可复现。
 
 不修改任何原始 jsonl 文件；回滚 = 删除输出目录重跑。
 
-用法：python3 assemble_train.py --srcdir data/sft --outdir data/train [--profile sft2|sft3]
+用法：python3 assemble_train.py --srcdir data/sft --outdir data/train [--profile sft2|sft3|sft17]
 """
 import argparse
 import json
@@ -30,7 +35,11 @@ CAPS_SFT2 = {"translate": 3_000_000, "record_tidy": 3_000_000, "schedule": 2_400
 # tool_call 短样本（≈+1.5M），上限 4.2M 只为不截断
 CAPS_SFT3 = {"translate": 1_300_000, "record_tidy": 1_000_000, "schedule": 4_200_000,
              "message": 1_800_000, "summarize": 500_000, "misc": 150_000}
-PROFILES = {"sft2": CAPS_SFT2, "sft3": CAPS_SFT3}
+# sft17（1.7B 主力线）：历史池 + 补合成 17M 全量拼装，占比贴近合成 share 25/25/20/15/10/5；
+# schedule 展开后 ≈9.6M，上限 10M 只为不截断（工具调用是核心任务，全保留）
+CAPS_SFT17 = {"translate": 6_250_000, "record_tidy": 6_250_000, "schedule": 10_000_000,
+              "message": 3_750_000, "summarize": 2_500_000, "misc": 1_250_000}
+PROFILES = {"sft2": CAPS_SFT2, "sft3": CAPS_SFT3, "sft17": CAPS_SFT17}
 MSG_BAD_PATTERNS = ["选项", "以下几种", "供你选择", "###", "**"]
 VAL_RATIO = 0.02
 SEED = 20261024
@@ -88,8 +97,8 @@ def main():
                 msgs = rec.get("messages") or []
                 if cat == "message" and is_bad_message(msgs):
                     continue
-                # sft3：schedule 轨迹前插工具定义 system 触发文本（推理侧同款注入）
-                if args.profile == "sft3" and cat == "schedule":
+                # sft3/sft17：schedule 轨迹前插工具定义 system 触发文本（推理侧同款注入）
+                if args.profile in ("sft3", "sft17") and cat == "schedule":
                     msgs = [{"role": "system", "content": SYNTH_SYS_SCHED1}] + msgs
                     # 轨迹展开：SFTDataset 只对最后一条 assistant 算 loss，不展开则
                     # tool_call 段永远被掩码在 prompt 里、模型只学口头确认（SFT3 首轮 0% 发射的根因）。
