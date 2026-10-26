@@ -1,0 +1,23 @@
+{
+  "note": "官方 Qwen3 GGUF 仓库 0.6B/1.7B 只发布 Q8_0 单档（HF/魔搭一致，2026-10-26 核实）；低档量化用本地钉版 llama-quantize 自转。sha256 为官方 LFS 哈希，下载时强校验。",
+  "models": [
+    {
+      "tag": "qwen3-1.7b-q8_0",
+      "name": "Qwen3-1.7B Q8_0（官方 GGUF，M1 基准母本）",
+      "tier": "standard",
+      "url": "https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q8_0.gguf",
+      "file": "Qwen3-1.7B-Q8_0.gguf",
+      "size_mb": 1749,
+      "sha256": "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a"
+    },
+    {
+      "tag": "qwen3-0.6b-q8_0",
+      "name": "Qwen3-0.6B Q8_0（官方 GGUF，low 档参照母本）",
+      "tier": "low",
+      "url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf",
+      "file": "Qwen3-0.6B-Q8_0.gguf",
+      "size_mb": 610,
+      "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031"
+    }
+  ]
+}

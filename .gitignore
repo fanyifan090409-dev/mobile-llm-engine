@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Python（训练线脚本环境）
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# 模型与大数据——GGUF/二进制一律不入 git（AGENTS.md 约定）
+*.gguf
+*.safetensors
+*.bin
+*.dat
+
+# llama.cpp vendor 克隆与构建产物（钉版 b11857，由引导脚本记录 tag）
+tools/llama.cpp/
+
+# CLLaMA 静态库产物（scripts/build-llama-static.sh 生成，头文件随 tag 同步入库）
+engine/Sources/CLLaMA/lib/
+
+# 训练侧大数据产物（本地镜像）
+train/gguf/
+train/nightly/work/
+train/nightly/venv/
+train/nightly/logs/
+
+# Swift/SPM 构建产物
+.build/
