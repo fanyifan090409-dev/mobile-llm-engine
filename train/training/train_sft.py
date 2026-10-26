@@ -21,17 +21,23 @@ from chunked_ce import ChunkedCETrainer
 
 
 class SFTDataset(Dataset):
-    """messages → input_ids + labels；__init__ 预计算避免每 epoch 重复模板化。"""
+    """messages → input_ids + labels；__init__ 预计算避免每 epoch 重复模板化。
 
-    def __init__(self, path, tokenizer, max_len):
+    no_think=True（SFT3 起）：apply_chat_template 传 enable_thinking=False，
+    官方模板在每个 assistant 回合头后注入空思考块 <think>\\n\\n</think>\\n\\n，
+    与推理侧 EngineCore.thinkTags 同款注入对齐——模型被钉在「不思考直接答」模式。
+    """
+
+    def __init__(self, path, tokenizer, max_len, no_think=False):
         with open(path, encoding="utf-8") as f:
             rows = [json.loads(l) for l in f if l.strip()]
+        tmpl_kwargs = {"enable_thinking": False} if no_think else {}
         self.samples = []
         for r in rows:
             msgs = r["messages"]
             prompt_msgs = msgs[:-1] if msgs and msgs[-1]["role"] == "assistant" else msgs
-            prompt = tokenizer.apply_chat_template(prompt_msgs, add_generation_prompt=True, tokenize=False)
-            full = tokenizer.apply_chat_template(msgs, add_generation_prompt=False, tokenize=False)
+            prompt = tokenizer.apply_chat_template(prompt_msgs, add_generation_prompt=True, tokenize=False, **tmpl_kwargs)
+            full = tokenizer.apply_chat_template(msgs, add_generation_prompt=False, tokenize=False, **tmpl_kwargs)
             pid = tokenizer(prompt, add_special_tokens=False)["input_ids"]
             fid = tokenizer(full, add_special_tokens=False)["input_ids"]
             if len(fid) > max_len:
@@ -102,12 +108,13 @@ def main():
     ap.add_argument("--no-grad-checkpoint", action="store_true", help="关梯度检查点（bs16 显存够时开）")
     ap.add_argument("--torch-compile", action="store_true", help="torch.compile 加速（冒烟验证后开）")
     ap.add_argument("--max-steps", type=int, default=-1, help=">0 时限制步数（冒烟用）")
+    ap.add_argument("--no-think", action="store_true", help="模板 enable_thinking=false 空思考块注入（SFT3 起）")
     ap.add_argument("--seed", type=int, default=20261024)
     args = ap.parse_args()
 
     set_seed(args.seed)
     tok = AutoTokenizer.from_pretrained(args.tokenizer or args.model)
-    ds = SFTDataset(args.data, tok, args.max_len)
+    ds = SFTDataset(args.data, tok, args.max_len, no_think=args.no_think)
     if len(ds) == 0:
         raise SystemExit("数据集为空")
     model = AutoModelForCausalLM.from_pretrained(

@@ -26,8 +26,8 @@ import random
 # 各类 est tokens 上限（sft2：计划占比 25/25/20/15/10/5 × ~12M 总量）
 CAPS_SFT2 = {"translate": 3_000_000, "record_tidy": 3_000_000, "schedule": 2_400_000,
              "message": 1_800_000, "summarize": 1_200_000, "misc": 600_000}
-# sft3：schedule 1.79M 全保留提占比（总量 ≈4.9M，schedule ≈37%）；schedule 上限 3.0M 只为不截断
-CAPS_SFT3 = {"translate": 1_300_000, "record_tidy": 1_000_000, "schedule": 3_000_000,
+# sft3：schedule 全保留提占比（含 system 前缀 est ≈3.0M，上限 3.5M 只为不截断）
+CAPS_SFT3 = {"translate": 1_300_000, "record_tidy": 1_000_000, "schedule": 3_500_000,
              "message": 1_800_000, "summarize": 500_000, "misc": 150_000}
 PROFILES = {"sft2": CAPS_SFT2, "sft3": CAPS_SFT3}
 MSG_BAD_PATTERNS = ["选项", "以下几种", "供你选择", "###", "**"]
