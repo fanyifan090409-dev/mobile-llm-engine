@@ -8,12 +8,13 @@
 - **引擎侧已缓解**：EngineCore 按 token ID 直拼 Qwen3 聊天格式（151644/151645 钉死），与正确模板分词逐 token 等价，见 EngineCore.swift chatTokens 注释。
 - **待修（训练线，需用户拍板）**：用钉版 llama.cpp（b11857）自带的新 gguf-py 重转 f16 → 重新量化 → 生成类评测重跑。引擎侧 ID 拼接保留（对两种 GGUF 都成立，不依赖修复时间）。
 
-## 2. 0.6B SFT2 工具调用遵循率不达标（2026-10-26 T3 实测）
+## 2. 0.6B 工具调用遵循率（2026-10-26 已解决，SFT3B 达标）
 
-- **现象**：训练分布同款 prompt 下（temp 0.7 与贪心各一次）均直接口头确认，零 tool_call；显式格式指令也照做不了。
-- **数据侧已排除**：train.jsonl 含 8581 条完整 schedule 轨迹（XML tool_call + tool 回填 + 确认话术，20% 占比，2 epochs）。
-- **待修（训练线，SFT3 专项）**：schedule 占比调高；/no_think 推理模板；合成期 system 提示进推理模板。仍不达标则 1.7B 做工具场景基座。
-- **引擎侧不受影响**：闭环已用官方 1.7B 实测通过（docs/plans/工具执行层-ToolKit.md §10）。
+- **历史现象**：SFT2 零 tool_call 发射（40 题全口头确认）；SFT3 首轮（system 注入+空块+占比）仍 0%。
+- **最终根因**：SFTDataset 只对最后一条 assistant 算 loss，五段式 schedule 轨迹的 tool_call 段永远被掩码在 prompt 里，模型从未被要求输出工具调用（SFT3 首轮只把口头确认训练得更强）。
+- **修复**：assemble_train.py sft3 profile 把带 system 的轨迹按 assistant 逐条切前缀样本（6,346 条 tool_call 样本 + 6,355 条确认样本），SFT3B 重训 2 epochs。
+- **结果（SFT3B Q5_K_M，40 题）**：发射率 100%、schema 通过率 100%、端到端 0%（CLI TCC 环境限制，见 #3）；15 题通用生成评测 PASS 无遗忘。
+- **遗留观察**：泛化题的日期映射偏弱（「周五晚上七点」→ 2021-05-06 等，模型不从真实日期推算星期）。属 0.6B 训练分布外能力，T4 iOS 确认弹窗可兜底；若影响可用性再议日期指令增强。
 
 ## 3. demo-cli 无 app bundle，EventKit TCC 拒绝（2026-10-26 T3 实测）
 

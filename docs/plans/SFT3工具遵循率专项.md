@@ -55,3 +55,12 @@
 - 数据侧只新增 data/train_sft3/，SFT2 的 data/train/ 与今晚对比评测链零冲突；
 - SFT3 训练产物独立 checkpoints 目录，SFT2 final 不动；
 - 全程不改原始 jsonl、不动 teacher 下线状态、不动 LiteLLM :4000。
+
+## 6. 执行结果（2026-10-26 归档）
+
+- **SFT3 首轮 0% 发射**，排查定位真正根因：SFTDataset 只对最后一条 assistant 算 loss，五段式轨迹的 tool_call 段永远被掩码在 prompt 里（计划 §1 的四条根因链不成立——推理侧注入、模板对齐、数据形状均验证无问题）。
+- **修复**：assemble_train.py sft3 profile 按 assistant 逐条切前缀样本（commit 2b630f9），SFT3B 重训 2 epochs（6,346 条 tool_call 样本 + 6,355 条确认样本，共 47,290 条 / 7.13M tokens）。
+- **验收（Q5_K_M，40 题，temp 0.7）**：发射率 **100%**（40/40）、schema 通过率 **100%**（40/40）、端到端 0%（CLI TCC 环境限制，真写入归 T4 iOS）——超 §3 阈值；15 题通用生成评测 PASS 无遗忘。
+- **量化产物**：Q5_K_M 551MB / Q4_K_M 484MB / IQ4_XS 450MB（train/gguf/qwen3-0.6b-sft3b-20261026/）。
+- **遗留**：泛化题日期映射偏弱（模型不从真实日期推星期），0.6B 训练分布外能力，见 tech-debt #2。
+- **升级路径未触发**：无需重启 teacher 补数据、无需 1.7B 基座。
