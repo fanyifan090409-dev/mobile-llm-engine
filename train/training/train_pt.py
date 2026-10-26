@@ -55,12 +55,20 @@ class WSDTrainer(ChunkedCETrainer):
 
 
 class PackedDataset(Dataset):
-    """多个 uint32 bins 拼接的窗口数据集：无 padding、无浪费，窗口不跨 bin 边界。"""
+    """多个 uint32 bins 拼接的窗口数据集：无 padding、无浪费，窗口不跨 bin 边界。
 
-    def __init__(self, bin_paths, seq_len):
+    holdout_last>0：第一个 bin 的末尾 holdout_last 个窗口不进训练集（划给验证）。
+    切在 bin 末尾保证训练/验证零重叠，且跨 run 地址稳定（同一份 val 可比）。
+    """
+
+    def __init__(self, bin_paths, seq_len, holdout_last=0):
         self.seq_len = seq_len
         self.bins = [np.memmap(p, dtype=np.uint32, mode="r") for p in bin_paths]
         self.windows = [len(b) // seq_len for b in self.bins]
+        if holdout_last > 0:
+            if self.windows[0] <= holdout_last:
+                raise SystemExit("holdout_last 超过首个 bin 的窗口数，检查参数")
+            self.windows[0] -= holdout_last
         self.offsets = np.cumsum([0] + self.windows)
 
     def __len__(self):
@@ -70,6 +78,27 @@ class PackedDataset(Dataset):
         b = int(np.searchsorted(self.offsets, i, side="right") - 1)
         j = i - self.offsets[b]
         s = self.bins[b][j * self.seq_len:(j + 1) * self.seq_len].astype(np.int64)
+        return {"input_ids": torch.from_numpy(s), "labels": torch.from_numpy(s)}
+
+
+class ValDataset(Dataset):
+    """验证集：固定取第一个 bin（主语料）末尾 n_windows 个窗口。
+
+    为什么用「第一个 bin 末尾」而不是随机抽：memmap 顺序切片零拷贝、跨 run
+    地址稳定（同一批 val 数据可比），且与 PackedDataset 的 holdout 切法一一对应。
+    """
+
+    def __init__(self, bin_path, seq_len, n_windows):
+        self.seq_len = seq_len
+        self.bin = np.memmap(bin_path, dtype=np.uint32, mode="r")
+        self.start = len(self.bin) // seq_len - n_windows
+        self.n_windows = n_windows
+
+    def __len__(self):
+        return self.n_windows
+
+    def __getitem__(self, i):
+        s = self.bin[(self.start + i) * self.seq_len:(self.start + i + 1) * self.seq_len].astype(np.int64)
         return {"input_ids": torch.from_numpy(s), "labels": torch.from_numpy(s)}
 
 
@@ -98,13 +127,20 @@ def main():
     ap.add_argument("--wsd", action="store_true", help="WSD 调度（续训推荐：稳定期恒定 lr，末 15% 衰减）")
     ap.add_argument("--wsd-decay-ratio", type=float, default=0.15, help="WSD 衰减段占比")
     ap.add_argument("--wsd-end-frac", type=float, default=0.05, help="WSD 衰减终点 lr = 峰值 × 此值（默认 1/20）")
+    ap.add_argument("--val-windows", type=int, default=0,
+                    help="验证窗口数：从第一个 bin 末尾切（0=不验证；1.7B 线用 128）")
+    ap.add_argument("--eval-steps", type=int, default=1000, help="每 N 步跑一次验证集")
     ap.add_argument("--seed", type=int, default=20261024)
     args = ap.parse_args()
 
     set_seed(args.seed)
-    ds = PackedDataset(args.data.split(","), args.seq_len)
+    ds = PackedDataset(args.data.split(","), args.seq_len, holdout_last=args.val_windows)
     if len(ds) == 0:
         raise SystemExit("数据集为空，检查 bins")
+    val_ds = None
+    if args.val_windows > 0:
+        # 验证集与训练集同源同窗口大小，eval_loss 与 train loss 直接可比
+        val_ds = ValDataset(args.data.split(",")[0], args.seq_len, args.val_windows)
     model = AutoModelForCausalLM.from_pretrained(
         args.model, dtype=torch.bfloat16, attn_implementation="sdpa",
     )
@@ -132,6 +168,8 @@ def main():
         save_strategy="steps",
         save_steps=args.save_steps,
         save_total_limit=3,
+        eval_strategy="steps" if args.val_windows > 0 else "no",
+        eval_steps=args.eval_steps,
         deepspeed=args.deepspeed,
         report_to=["mlflow"],
         ddp_find_unused_parameters=False,
@@ -146,7 +184,7 @@ def main():
     kwargs = {"chunk_size": args.ce_chunk} if args.chunked_ce else {}
     if args.wsd:
         kwargs.update({"wsd_decay_ratio": args.wsd_decay_ratio, "wsd_end_frac": args.wsd_end_frac})
-    trainer = trainer_cls(model=model, args=ta, train_dataset=ds, **kwargs)
+    trainer = trainer_cls(model=model, args=ta, train_dataset=ds, eval_dataset=val_ds, **kwargs)
     # 续训：resume_from_checkpoint 恢复 optimizer/scheduler/数据位置，
     # 步数续接 → 余弦 LR 按剩余步继续走，等价于没中断
     trainer.train(resume_from_checkpoint=args.resume_from_checkpoint or False)

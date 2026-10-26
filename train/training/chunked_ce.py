@@ -149,6 +149,20 @@ class ChunkedCETrainer(Trainer):
                 loss = loss * (loss_scale if self.args.n_gpu <= 1 else self.args.n_gpu)
         return (loss, None) if return_outputs else loss
 
+    def prediction_step(self, model, inputs, prediction_loss_only, ignore_keys=None):
+        """eval 路径自己实现：backbone 前向 + 分块 CE，返回 (loss, None, None)。
+
+        不调父类：transformers 5.20 的 prediction_step 假定 compute_loss 返回
+        (loss, tuple(logits,...)) 并对 outputs[1:] 做下标——分块 CE 没有 logits，
+        父类路径直接 TypeError（1.7B 冒烟首测抓到的，冒烟必须覆盖 eval 路径）。
+        """
+        inputs = self._prepare_inputs(inputs)
+        with torch.no_grad():
+            with self.compute_loss_context_manager():
+                loss = self.compute_loss(model, inputs, return_outputs=False)
+            loss = loss.mean().detach()
+        return (loss, None, None)
+
 
 def check_equivalence(model_path, chunk_size=256, seed=20261024):
     """上线前自检：同一随机批，分块 CE 与原生 CE 的 loss、lm_head 权重梯度逐项比对。
