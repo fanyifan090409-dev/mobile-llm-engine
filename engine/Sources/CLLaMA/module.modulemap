@@ -1,0 +1,12 @@
+// llama.cpp b11857 头文件模块：只暴露 C API 头，静态库经 Package.swift linkerSettings 链接
+module CLLaMA {
+    header "include/llama.h"
+    header "include/ggml.h"
+    header "include/ggml-alloc.h"
+    header "include/ggml-backend.h"
+    header "include/ggml-cpu.h"
+    header "include/ggml-metal.h"
+    header "include/ggml-opt.h"
+    header "include/gguf.h"
+    export *
+}
