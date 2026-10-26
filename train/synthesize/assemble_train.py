@@ -26,8 +26,9 @@ import random
 # 各类 est tokens 上限（sft2：计划占比 25/25/20/15/10/5 × ~12M 总量）
 CAPS_SFT2 = {"translate": 3_000_000, "record_tidy": 3_000_000, "schedule": 2_400_000,
              "message": 1_800_000, "summarize": 1_200_000, "misc": 600_000}
-# sft3：schedule 全保留提占比（含 system 前缀 est ≈3.0M，上限 3.5M 只为不截断）
-CAPS_SFT3 = {"translate": 1_300_000, "record_tidy": 1_000_000, "schedule": 3_500_000,
+# sft3：schedule 全保留提占比（含 system 前缀 est ≈3.0M）；展开后每条轨迹多一条
+# tool_call 短样本（≈+1.5M），上限 4.2M 只为不截断
+CAPS_SFT3 = {"translate": 1_300_000, "record_tidy": 1_000_000, "schedule": 4_200_000,
              "message": 1_800_000, "summarize": 500_000, "misc": 150_000}
 PROFILES = {"sft2": CAPS_SFT2, "sft3": CAPS_SFT3}
 MSG_BAD_PATTERNS = ["选项", "以下几种", "供你选择", "###", "**"]
@@ -90,7 +91,13 @@ def main():
                 # sft3：schedule 轨迹前插工具定义 system 触发文本（推理侧同款注入）
                 if args.profile == "sft3" and cat == "schedule":
                     msgs = [{"role": "system", "content": SYNTH_SYS_SCHED1}] + msgs
-                    rec = dict(rec, messages=msgs)
+                    # 轨迹展开：SFTDataset 只对最后一条 assistant 算 loss，不展开则
+                    # tool_call 段永远被掩码在 prompt 里、模型只学口头确认（SFT3 首轮 0% 发射的根因）。
+                    # 每条 assistant 切一个前缀样本：tool_call 段独立成为学习目标
+                    for idx in range(len(msgs)):
+                        if msgs[idx]["role"] == "assistant":
+                            recs.append(dict(rec, messages=msgs[:idx + 1]))
+                    continue
                 recs.append(rec)
 
         rng.shuffle(recs)
