@@ -27,3 +27,6 @@ train/nightly/logs/
 
 # Swift/SPM 构建产物
 .build/
+
+# 内部协作规则文档——仅本地使用，不进公开仓库（2026-10-26 从历史彻底清除）
+AGENTS.md
