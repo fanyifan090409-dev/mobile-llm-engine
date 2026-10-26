@@ -8,6 +8,7 @@ import CLLaMA
 public final class EngineCore: LocalEngine {
     private var model: ModelHandle?
     private var ctx: ContextHandle?
+    private var thinkTags = false   // 空思考块注入开关，与 ModelSpec.thinkTags 同源（训练模板 enable_thinking 对齐）
     private let queue = DispatchQueue(label: "enginekit.generation", qos: .userInitiated)
     private let registry = ToolRegistry()
 
@@ -80,6 +81,7 @@ public final class EngineCore: LocalEngine {
         let c = try m.makeContext(context: Int32(spec.context), batch: 2048)
         model = m
         ctx = c
+        thinkTags = spec.thinkTags
     }
 
     private func runGeneration(_ req: GenerationRequest, _ cont: AsyncThrowingStream<TokenEvent, Error>.Continuation) {
@@ -88,16 +90,35 @@ public final class EngineCore: LocalEngine {
             return
         }
         do {
-            var prompt = try chatTokens(model: model, messages: req.messages)
-            // 防 KV 溢出：prompt + maxTokens 超上限时截断 prompt 头部
+            // 工具模式：req.tools 是本次启用的白名单子集；请求带 tools 但一个都解析不到 → 纯文本兜底
+            let activeTools = req.tools?.compactMap { registry.tool(named: $0) } ?? []
+            let toolMode = req.tools != nil && !activeTools.isEmpty
+            let msgs = Self.messagesWithToolSystem(req.messages, tools: activeTools, toolMode: toolMode)
+
+            let (full, sysCount) = try chatTokens(model: model, messages: msgs)
+            var prompt = full
+            // 防 KV 溢出：prompt + maxTokens 超上限时截断；工具定义的 system 触发文本不能丢，只截历史部分
             let budget = Int(ctx.nCtx) - req.maxTokens - 8
             if prompt.count > budget {
-                prompt = Array(prompt.suffix(budget))
+                let keep = max(0, budget - sysCount)
+                prompt = Array(prompt.prefix(sysCount)) + Array(prompt.suffix(keep))
             }
-            runGenerationWithPrompt(prompt, model: model, ctx: ctx, req: req, cont: cont)
+            runGenerationWithPrompt(prompt, model: model, ctx: ctx, req: req, cont: cont,
+                                    activeTools: activeTools, toolMode: toolMode)
         } catch {
             cont.finish(throwing: error)
         }
+    }
+
+    // 工具定义 system 注入：SFT3 训练数据的 schedule 轨迹前插了与合成期逐字一致的触发文本
+    // （「你是手机助手。当用户要求添加日历事件时…」），推理侧必须注入同款文本，
+    // 否则模型学不到「看到工具定义才输出 tool_call」的条件行为（tech-debt #2 根因）。
+    // usagePrompt 为空跳过；用户已自带 system 消息时不重复注入
+    private static func messagesWithToolSystem(_ messages: [Message], tools: [LocalTool], toolMode: Bool) -> [Message] {
+        guard toolMode, !messages.contains(where: { $0.role == "system" }) else { return messages }
+        let prompts = tools.compactMap { $0.spec.usagePrompt }
+        guard !prompts.isEmpty else { return messages }
+        return [Message(role: "system", content: prompts.joined(separator: "\n\n"))] + messages
     }
 
     private func runGenerationWithPrompt(
@@ -105,7 +126,9 @@ public final class EngineCore: LocalEngine {
         model: ModelHandle,
         ctx: ContextHandle,
         req: GenerationRequest,
-        cont: AsyncThrowingStream<TokenEvent, Error>.Continuation
+        cont: AsyncThrowingStream<TokenEvent, Error>.Continuation,
+        activeTools: [LocalTool],
+        toolMode: Bool
     ) {
         do {
             let sampler = try SamplerHandle.chain(temperature: Float(req.temperature), seed: UInt32.random(in: 0...UInt32.max))
@@ -115,10 +138,6 @@ public final class EngineCore: LocalEngine {
             try ctx.decode(tokens: prompt)
             let ppSeconds = Self.seconds(since: ppStart)
             let ppTs = Double(prompt.count) / max(ppSeconds, 0.001)
-
-            // 工具模式：req.tools 是本次启用的白名单子集；请求带 tools 但一个都解析不到 → 纯文本兜底
-            let activeTools = req.tools?.compactMap { registry.tool(named: $0) } ?? []
-            let toolMode = req.tools != nil && !activeTools.isEmpty
 
             // 自回归循环：采样 → 吐字 → 单 token decode；
             // 工具模式下累积文本命中 </tool_call> 即暂停解码，执行工具并把结果回填进上下文续跑
@@ -159,6 +178,9 @@ public final class EngineCore: LocalEngine {
                         fb += try model.tokenize("\n", addSpecial: false)
                         fb.append(Qwen3SpecialToken.imStart)
                         fb += try model.tokenize("assistant\n", addSpecial: false)
+                        if thinkTags {
+                            fb += try thinkBlockTokens(model: model)
+                        }
                         try ctx.decode(tokens: fb)
                         accumulated = ""  // 新一轮检测窗口清零
                     }
@@ -205,24 +227,44 @@ public final class EngineCore: LocalEngine {
     // 原因：训练机自转 GGUF 缺 tokenizer.ggml.added_tokens（旧 gguf-py 只读 tokenizer_config.json），
     // "<|im_end|>" 会被退化成 6 个字面 subword token；而词表本身完整、特殊 token ID 固定，
     // 按 ID 拼接与正确模板分词结果逐 token 等价（特殊 token 在 BPE 中不参与合并，段间无跨边界 merge）
-    private func chatTokens(model: ModelHandle, messages: [Message]) throws -> [llama_token] {
+    // 返回 (tokens, systemCount)：systemCount = 首条 system 消息的 token 数（无 system 时为 0），
+    // 供 KV 溢出截断时保住工具定义触发文本
+    private func chatTokens(model: ModelHandle, messages: [Message]) throws -> (tokens: [llama_token], systemCount: Int) {
         var tokens: [llama_token] = []
-        for m in messages {
+        var systemCount = 0
+        for (i, m) in messages.enumerated() {
             tokens.append(Qwen3SpecialToken.imStart)
             tokens += try model.tokenize(m.role, addSpecial: false)
             tokens += try model.tokenize("\n" + m.content, addSpecial: false)
             tokens.append(Qwen3SpecialToken.imEnd)
             tokens += try model.tokenize("\n", addSpecial: false)
+            if i == 0 && m.role == "system" { systemCount = tokens.count }
         }
         tokens.append(Qwen3SpecialToken.imStart)
         tokens += try model.tokenize("assistant\n", addSpecial: false)
-        return tokens
+        if thinkTags {
+            tokens += try thinkBlockTokens(model: model)
+        }
+        return (tokens, systemCount)
+    }
+
+    // 空思考块（/no_think 项）：SFT3 起训练模板 enable_thinking=false 在每个 assistant 回合头后
+    // 注入官方同款空块 <think>\n\n</think>\n\n，模型据此直接作答不思考；
+    // SFT2/官方原版训练时无此块 → thinkTags 默认关，避免分布偏移
+    private func thinkBlockTokens(model: ModelHandle) throws -> [llama_token] {
+        var t: [llama_token] = [Qwen3SpecialToken.think]
+        t += try model.tokenize("\n\n", addSpecial: false)
+        t.append(Qwen3SpecialToken.thinkEnd)
+        t += try model.tokenize("\n\n", addSpecial: false)
+        return t
     }
 
     // Qwen3 词表钉死的特殊 token ID（v3/v3.5 同词表；M3 支持多模型时按 arch 查表）
     private enum Qwen3SpecialToken {
         static let imStart: llama_token = 151644
         static let imEnd: llama_token = 151645
+        static let think: llama_token = 151667
+        static let thinkEnd: llama_token = 151668
     }
 
     private static func seconds(since start: DispatchTime) -> Double {

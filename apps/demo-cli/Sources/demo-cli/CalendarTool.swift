@@ -6,6 +6,14 @@ import EngineKit
 // 确认逻辑由构造注入的闭包决定（CLI 用 readLine；iOS 版换成系统弹窗），
 // 完全信任模式（trustAlways）跳过确认——开启入口必须打印强提醒（见 main.swift --trust-tools）。
 final class CalendarTool: LocalTool {
+    // 工具定义触发文本：与训练机 SYNTH_SYS_SCHED1（synthesize_sft.py / SFT3 数据前插）逐字一致。
+    // 训练/推理任何一侧改动此文本都会造成分布偏移（tech-debt #2 根因），改前必须先同步训练侧。
+    static let usagePrompt = ("你是手机助手。当用户要求添加日历事件时，只输出一个工具调用块，"
+        + "不要输出任何其他内容，格式：\n"
+        + "<tool_call>\n{\"name\": \"add_calendar_event\", \"arguments\": "
+        + "{\"title\": \"事件名称\", \"start_time\": \"YYYY-MM-DD HH:mm\", "
+        + "\"end_time\": \"YYYY-MM-DD HH:mm\", \"location\": \"地点\", \"note\": \"备注\"}}\n</tool_call>")
+
     let spec = ToolSpec(
         name: "add_calendar_event",
         description: "向用户日历添加事件",
@@ -17,7 +25,8 @@ final class CalendarTool: LocalTool {
                               pattern: #"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$"#),
             ToolParameterSpec(name: "location", type: "string", description: "地点", required: false),
             ToolParameterSpec(name: "note", type: "string", description: "备注", required: false),
-        ])
+        ],
+        usagePrompt: usagePrompt)
 
     private let confirm: @Sendable (String) async -> Bool
     private let trustAlways: Bool

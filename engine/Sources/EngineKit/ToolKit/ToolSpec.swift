@@ -26,11 +26,16 @@ public struct ToolSpec: Codable, Sendable {
     public let name: String
     public let description: String
     public let parameters: [ToolParameterSpec]
+    /// 工具定义触发文本：注册此工具时引擎作为 system 消息注入。
+    /// 必须与 SFT3 训练数据前插的 system 文本逐字一致（SYNTH_SYS_SCHED1），
+    /// 否则训练/推理分布偏移（tech-debt #2 根因）；nil = 不注入（纯文本模型可用）
+    public let usagePrompt: String?
 
-    public init(name: String, description: String, parameters: [ToolParameterSpec]) {
+    public init(name: String, description: String, parameters: [ToolParameterSpec], usagePrompt: String? = nil) {
         self.name = name
         self.description = description
         self.parameters = parameters
+        self.usagePrompt = usagePrompt
     }
 
     /// 参数名 → 规格索引（校验与清单生成共用）

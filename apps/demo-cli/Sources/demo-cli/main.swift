@@ -5,6 +5,7 @@ import EngineKit
 // 用法：
 //   demo-cli --model <gguf> [--quant Q4_K_M] [--context 4096] [--speed balanced] [--max-tokens 256] [--temperature 0.7]
 //   demo-cli ... [--tools] [--trust-tools]          # --tools 开启日历工具；--trust-tools 跳过每次确认（强提醒）
+//   demo-cli ... [--think-tags]                     # 空思考块注入（SFT3 起模型训练模板同款，SFT2/官方模型勿开）
 //   demo-cli ... -p "你好，介绍一下你自己"           # 一次性模式（基准用）
 // 速度档：powerSaver / balanced / performance / turbo
 
@@ -18,6 +19,7 @@ struct CLIOptions {
     var prompt: String?
     var tools = false
     var trustTools = false
+    var thinkTags = false
 }
 
 func parseSpeed(_ s: String) -> SpeedTier {
@@ -48,6 +50,7 @@ func parseArgs() -> CLIOptions {
         case "-p", "--prompt": opts.prompt = take(&args)
         case "--tools": opts.tools = true
         case "--trust-tools": opts.trustTools = true
+        case "--think-tags": opts.thinkTags = true
         default:
             print("未知参数：\(a)", to: &standardError)
         }
@@ -74,7 +77,8 @@ struct DemoCLI {
         }
 
         let engine = EngineCore()
-        let spec = ModelSpec(fileURL: URL(fileURLWithPath: modelPath), quant: opts.quant, context: opts.context)
+        let spec = ModelSpec(fileURL: URL(fileURLWithPath: modelPath), quant: opts.quant,
+                             context: opts.context, thinkTags: opts.thinkTags)
         do {
             try await engine.load(spec)
         } catch {
