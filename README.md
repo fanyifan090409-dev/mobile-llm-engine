@@ -36,7 +36,7 @@ swift run demo-cli --model ../../qwen3-0.6b-sft-Q5_K_M.gguf --quant Q5_K_M --thi
 
 ## 模型能力指标（0.6B Q5_K_M 实测）
 
-评测环境：Mac M5 Air、demo-cli、temperature 0.7。本仓库 `scripts/eval_hallucination.sh` 可复跑幻觉率部分。
+评测环境：Mac M5 Air、demo-cli、temperature 0.7。本仓库 `scripts/eval_hallucination.sh` 可复跑幻觉率部分；完整明细（40 题汇总、真实输出示例、15 题逐题结果、编造问答原文）见 [docs/评测/工具调用评测结果.md](docs/评测/工具调用评测结果.md)。
 
 ### 工具调用成功率（40 题遵循率评测，2026-10-26）
 
