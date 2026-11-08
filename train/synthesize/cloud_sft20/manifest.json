@@ -1,0 +1,48 @@
+{
+  "source": "用户云端生成（CodeBuddy CLI）",
+  "received": "2026-11-04",
+  "file": "multimodel_sft_1300.jsonl",
+  "rows": 1300,
+  "roles": {
+    "worker": 800,
+    "leader": 500
+  },
+  "task_types": {
+    "calendar": 250,
+    "reminder": 250,
+    "translate": 250,
+    "summary": 250,
+    "mixed": 150,
+    "chat": 100,
+    "error": 50
+  },
+  "role_task": {
+    "worker/calendar": 200,
+    "worker/reminder": 200,
+    "worker/translate": 200,
+    "worker/summary": 200,
+    "leader/calendar": 50,
+    "leader/reminder": 50,
+    "leader/translate": 50,
+    "leader/summary": 50,
+    "leader/mixed": 150,
+    "leader/chat": 100,
+    "leader/error": 50
+  },
+  "messages_per_row": {
+    "3": 900,
+    "5": 229,
+    "9": 69,
+    "7": 102
+  },
+  "total_chars": 976484,
+  "schema": "role/task_type/messages，符合 docs/plans/SFT20多模型协作-领队与工人.md §四",
+  "qc": {
+    "bad_json": 0,
+    "exact_duplicates": 0,
+    "worker_schema_mismatch": 0,
+    "tool_result_field_errors": 0,
+    "date_format_errors": 0,
+    "note": "跨年日期（2027）为 2026 锚点后的下一次出现，抽检正确；不视为错误。"
+  }
+}

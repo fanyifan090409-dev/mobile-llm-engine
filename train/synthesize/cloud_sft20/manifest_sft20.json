@@ -1,0 +1,58 @@
+{
+  "source": "用户云端生成（CodeBuddy CLI）",
+  "updated": "2026-11-04",
+  "files": {
+    "batch1": {
+      "file": "multimodel_sft_1300.jsonl",
+      "rows": 1300
+    },
+    "batch2_raw": {
+      "file": "multimodel_sft_batch2_1900.jsonl",
+      "rows": 1900
+    },
+    "batch2_clean": {
+      "file": "multimodel_sft_batch2_clean.jsonl",
+      "rows": 1756
+    }
+  },
+  "merged": {
+    "total": 3056,
+    "leader": 1856,
+    "worker": 1200
+  },
+  "task_types": {
+    "calendar": 475,
+    "reminder": 475,
+    "translate": 475,
+    "summary": 475,
+    "mixed": 700,
+    "chat": 350,
+    "error": 106
+  },
+  "role_task": {
+    "worker/calendar": 300,
+    "worker/reminder": 300,
+    "worker/translate": 300,
+    "worker/summary": 300,
+    "leader/calendar": 175,
+    "leader/reminder": 175,
+    "leader/translate": 175,
+    "leader/summary": 175,
+    "leader/mixed": 700,
+    "leader/chat": 350,
+    "leader/error": 106
+  },
+  "batch2_qc": {
+    "bad_json": 0,
+    "exact_duplicates": 0,
+    "tool_call_parse_errors": 0,
+    "date_format_errors": 0,
+    "relative_date_leaks": 0,
+    "placeholder_runs": 0,
+    "cleaning": [
+      "删除 error 类重复样本 144 条（按 用户话术×消息轮数×首次派单 去重，每键保留 4 条）",
+      "24 条摘要异常样本的 900 字「长」占位原文替换为真实长文"
+    ],
+    "error_after": 56
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "system_prompt_chars": 220,
+  "clarify": 1000,
+  "replay": 1500,
+  "chat": 300,
+  "total": 2800,
+  "train": 2520,
+  "val": 280,
+  "clarify_categories": {
+    "ambiguous": 250,
+    "no_target": 200,
+    "vague": 150,
+    "contradiction": 60,
+    "no_time": 300,
+    "out_of_scope": 40
+  },
+  "replay_types": {
+    "calendar": 173,
+    "error": 105,
+    "mixed": 698,
+    "reminder": 175,
+    "summary": 174,
+    "translate": 175
+  },
+  "unique_train_users": 2434
+}

@@ -1,0 +1,18 @@
+{
+  "single_dispatch": 880,
+  "generated_dispatch": 1200,
+  "multi_dispatch": 300,
+  "clarify": 600,
+  "clarify_by_cat": {
+    "no_time": 180,
+    "no_target": 120,
+    "ambiguous": 150,
+    "vague": 90,
+    "contradiction": 36,
+    "out_of_scope": 24
+  },
+  "chat": 350,
+  "total": 3330,
+  "train": 2997,
+  "val": 333
+}

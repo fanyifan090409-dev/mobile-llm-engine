@@ -18,6 +18,7 @@ import re
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import date
 
 import requests
 
@@ -77,6 +78,12 @@ ACTIVITIES = ["健身私教课", "取快递", "家长会", "复诊", "还书", "
 TIME_PHRASES = ["明天下午三点", "周五晚上七点", "下周一早上八点半", "这周六中午", "后天上午十点",
                 "今晚九点", "周日傍晚六点", "下周三下午两点"]
 LOCATIONS = ["公司", "家里", "学校", "医院", "健身房", "咖啡店", "图书馆", "地铁站A口", "商场三楼"]
+# 日期锚点池：teacher 以「今天」为基准把相对时间换算成具体日期，
+# 训练轨迹带锚点 → 模型学会 相对→绝对 映射（SFT17 无锚点致幻觉率根因）
+_WEEKDAY_CN = "一二三四五六日"
+ANCHOR_DATES = [f"{y}年{m}月{d}日（周{_WEEKDAY_CN[date(y, m, d).weekday()]}）"
+                for y, m, end in ((2026, 11, 30), (2026, 12, 31), (2027, 1, 31))
+                for d in range(1, end + 1)]
 MSG_SCENARIOS = [
     ("请假", "跟老板请明天上午的假，理由：孩子学校有事"),
     ("拒绝", "婉拒朋友周末爬山邀请，因为要加班"),
@@ -161,8 +168,11 @@ def build_schedule(rng):
     activity = rng.choice(ACTIVITIES)
     t = rng.choice(TIME_PHRASES)
     loc = rng.choice(LOCATIONS)
-    user = (f"帮我在手机日历里加一个事件：{activity}，时间{t}，地点{loc}。\n"
-            f"日期用2026年11月里的日子，时长约一小时。")
+    # 锚点写进 user 消息（推理侧 app 也会前置「今天是…」），teacher 按锚点
+    # 把相对时间（明天/周五等）换算成具体日期，轨迹教会模型相对→绝对映射
+    anchor = rng.choice(ANCHOR_DATES)
+    user = (f"今天是{anchor}。帮我在手机日历里加一个事件：{activity}，时间{t}，地点{loc}，"
+            f"时长约一小时。")
     spec = {"kind": "schedule", "messages": [{"role": "user", "content": user}], "max_tokens": 1024}
     spec["synthesis_system"] = SYNTH_SYS_SCHED1
     return spec
