@@ -21,6 +21,10 @@ engine/Sources/CLLaMA/lib/
 
 # 训练侧大数据产物（本地镜像）
 train/gguf/
+train/synthesize/cloud_sft20/*.jsonl
+# 合成数据产物（脚本可重跑，仅本地保留）
+train/synthesize/*/*.jsonl
+train/synthesize/*.jsonl
 train/nightly/work/
 train/nightly/venv/
 train/nightly/logs/
@@ -28,5 +32,18 @@ train/nightly/logs/
 # Swift/SPM 构建产物
 .build/
 
+# Xcode 用户态产物（打开工程即生成，含个人签名信息，不入库）
+xcuserdata/
+project.xcworkspace/
+.swiftpm/
+
 # 内部协作规则文档——仅本地使用，不进公开仓库（2026-10-26 从历史彻底清除）
 AGENTS.md
+
+# 真题类私有材料（版权，仅本地评测/训练用，不进公开仓库）
+train/eval/private/
+
+# 误放的私有产物副本（2026-11-08 发现 train/train 嵌套目录，含真题答案，不入库）
+train/train/
+
+train/synthesize/out_*/
