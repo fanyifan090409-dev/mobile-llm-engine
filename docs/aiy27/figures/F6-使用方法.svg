@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="cardGlass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7F7FA"/>
+      <stop offset="1" stop-color="#FDFDFE"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#AEAEB2"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="96" y="112" font-family="-apple-system,'PingFang SC',sans-serif" font-size="44" font-weight="700" fill="#1D1D1F">真实使用方法 · 一次完整任务的全过程</text>
+  <text x="96" y="158" font-family="-apple-system,'PingFang SC',sans-serif" font-size="24" fill="#6E6E73">与演示视频逐一对应：从断网到写入日历，每一步都发生在手机本地</text>
+
+  <!-- 第 1 行：步骤 1-4 -->
+  <g font-family="-apple-system,'PingFang SC',sans-serif">
+    <g transform="translate(96,220)">
+      <rect width="300" height="210" rx="20" fill="url(#cardGlass)" stroke="#D9D9DE"/>
+      <circle cx="52" cy="52" r="20" fill="#0A84FF"/>
+      <text x="52" y="60" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+      <text x="36" y="118" font-size="24" font-weight="600" fill="#1D1D1F">打开飞行模式</text>
+      <text x="36" y="152" font-size="17" fill="#6E6E73">手机彻底断网——</text>
+      <text x="36" y="176" font-size="17" fill="#6E6E73">云端 AI 全部不可用</text>
+    </g>
+    <line x1="412" y1="325" x2="488" y2="325" stroke="#AEAEB2" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(504,220)">
+      <rect width="300" height="210" rx="20" fill="url(#cardGlass)" stroke="#D9D9DE"/>
+      <circle cx="52" cy="52" r="20" fill="#0A84FF"/>
+      <text x="52" y="60" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+      <text x="36" y="118" font-size="24" font-weight="600" fill="#1D1D1F">说一句话任务</text>
+      <text x="36" y="152" font-size="17" fill="#6E6E73">「帮我加个日历事件：</text>
+      <text x="36" y="176" font-size="17" fill="#6E6E73">家长会，明天下午三点」</text>
+    </g>
+    <line x1="820" y1="325" x2="896" y2="325" stroke="#AEAEB2" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(912,220)">
+      <rect width="300" height="210" rx="20" fill="url(#cardGlass)" stroke="#D9D9DE"/>
+      <circle cx="52" cy="52" r="20" fill="#0A84FF"/>
+      <text x="52" y="60" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+      <text x="36" y="118" font-size="24" font-weight="600" fill="#1D1D1F">本地推理</text>
+      <text x="36" y="152" font-size="17" fill="#6E6E73">1.7B 模型在手机</text>
+      <text x="36" y="176" font-size="17" fill="#6E6E73">本地理解意图</text>
+    </g>
+    <line x1="1228" y1="325" x2="1304" y2="325" stroke="#AEAEB2" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(1320,220)">
+      <rect width="300" height="210" rx="20" fill="url(#cardGlass)" stroke="#D9D9DE"/>
+      <circle cx="52" cy="52" r="20" fill="#0A84FF"/>
+      <text x="52" y="60" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
+      <text x="36" y="118" font-size="24" font-weight="600" fill="#1D1D1F">结构化工具指令</text>
+      <text x="36" y="152" font-size="17" fill="#6E6E73">模型输出标准</text>
+      <text x="36" y="176" font-size="17" fill="#6E6E73">tool_call JSON</text>
+    </g>
+    <!-- 折返箭头 -->
+    <path d="M1470,430 C1470,520 1260,520 1260,560" fill="none" stroke="#AEAEB2" stroke-width="2" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- 第 2 行：步骤 5-7 -->
+  <g font-family="-apple-system,'PingFang SC',sans-serif">
+    <g transform="translate(96,560)">
+      <rect width="300" height="210" rx="20" fill="url(#cardGlass)" stroke="#D9D9DE"/>
+      <circle cx="52" cy="52" r="20" fill="#30D158"/>
+      <text x="52" y="60" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text>
+      <text x="36" y="118" font-size="24" font-weight="600" fill="#1D1D1F">系统确认</text>
+      <text x="36" y="152" font-size="17" fill="#6E6E73">写入前弹出确认——</text>
+      <text x="36" y="176" font-size="17" fill="#6E6E73">最终决定权在人</text>
+    </g>
+    <line x1="412" y1="665" x2="488" y2="665" stroke="#AEAEB2" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(504,560)">
+      <rect width="300" height="210" rx="20" fill="url(#cardGlass)" stroke="#D9D9DE"/>
+      <circle cx="52" cy="52" r="20" fill="#30D158"/>
+      <text x="52" y="60" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text>
+      <text x="36" y="118" font-size="24" font-weight="600" fill="#1D1D1F">写入日历</text>
+      <text x="36" y="152" font-size="17" fill="#6E6E73">EventKit 本地写入</text>
+      <text x="36" y="176" font-size="17" fill="#6E6E73">数据不出设备</text>
+    </g>
+    <line x1="820" y1="665" x2="896" y2="665" stroke="#AEAEB2" stroke-width="2" marker-end="url(#arrow)"/>
+    <g transform="translate(912,560)">
+      <rect width="300" height="210" rx="20" fill="url(#cardGlass)" stroke="#D9D9DE"/>
+      <circle cx="52" cy="52" r="20" fill="#30D158"/>
+      <text x="52" y="60" font-size="24" font-weight="700" fill="#FFFFFF" text-anchor="middle">7</text>
+      <text x="36" y="118" font-size="24" font-weight="600" fill="#1D1D1F">自然语言确认</text>
+      <text x="36" y="152" font-size="17" fill="#6E6E73">模型回读结果：</text>
+      <text x="36" y="176" font-size="17" fill="#6E6E73">「已添加到日历」</text>
+    </g>
+  </g>
+
+  <line x1="96" y1="816" x2="1504" y2="816" stroke="#D9D9DE"/>
+  <text x="96" y="854" font-family="-apple-system,'PingFang SC',sans-serif" font-size="22" font-weight="600" fill="#1D1D1F">结论：断网环境下完整跑通「说 → 想 → 确认 → 做」，全程无一次网络请求。</text>
+  <text x="96" y="884" font-family="-apple-system,'PingFang SC',sans-serif" font-size="16" fill="#AEAEB2">来源：演示壳真实流程（apps/ios-shell · AIY 演示版） · 2026-11-03</text>
+</svg>

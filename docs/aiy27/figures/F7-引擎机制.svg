@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#AEAEB2"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="96" y="112" font-family="-apple-system,'PingFang SC',sans-serif" font-size="44" font-weight="700" fill="#1D1D1F">推理引擎机制 · 我们对开源底座做了什么</text>
+  <text x="96" y="158" font-family="-apple-system,'PingFang SC',sans-serif" font-size="24" fill="#6E6E73">底座用开源，工程全自研——蓝色 = 我们实现的部分</text>
+
+  <!-- 左列：三层架构 -->
+  <g font-family="-apple-system,'PingFang SC',sans-serif">
+    <!-- 顶层 App -->
+    <g transform="translate(96,210)">
+      <rect width="820" height="150" rx="20" fill="#EAF3FF" stroke="#0A84FF" stroke-width="1.5"/>
+      <text x="36" y="52" font-size="26" font-weight="700" fill="#0A84FF">App 层 · 我们实现</text>
+      <text x="36" y="92" font-size="19" fill="#1D1D1F">CalendarTool（EventKit 写日历 + 系统确认弹窗） · 演示界面（玻璃卡片 / 过程卡）</text>
+      <text x="36" y="124" font-size="16" fill="#6E6E73">SwiftUI · iOS 17+</text>
+    </g>
+    <line x1="506" y1="364" x2="506" y2="390" stroke="#AEAEB2" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- 中层 EngineKit -->
+    <g transform="translate(96,392)">
+      <rect width="820" height="196" rx="20" fill="#EAF3FF" stroke="#0A84FF" stroke-width="1.5"/>
+      <text x="36" y="50" font-size="26" font-weight="700" fill="#0A84FF">EngineKit 引擎层 · 我们实现（全 Swift）</text>
+      <!-- 能力 chips -->
+      <g font-size="16" font-weight="600">
+        <rect x="36" y="74" width="236" height="44" rx="22" fill="#FFFFFF" stroke="#C7D8F5"/>
+        <text x="154" y="102" text-anchor="middle" fill="#1D1D1F">KV 逐轮清理</text>
+        <rect x="288" y="74" width="236" height="44" rx="22" fill="#FFFFFF" stroke="#C7D8F5"/>
+        <text x="406" y="102" text-anchor="middle" fill="#1D1D1F">内存档位选择</text>
+        <rect x="540" y="74" width="256" height="44" rx="22" fill="#FFFFFF" stroke="#C7D8F5"/>
+        <text x="668" y="102" text-anchor="middle" fill="#1D1D1F">速度/线程档</text>
+        <rect x="36" y="132" width="300" height="44" rx="22" fill="#FFFFFF" stroke="#C7D8F5"/>
+        <text x="186" y="160" text-anchor="middle" fill="#1D1D1F">ToolLoop · 白名单+schema 校验</text>
+        <rect x="352" y="132" width="236" height="44" rx="22" fill="#FFFFFF" stroke="#C7D8F5"/>
+        <text x="470" y="160" text-anchor="middle" fill="#1D1D1F">流式事件流</text>
+        <rect x="604" y="132" width="192" height="44" rx="22" fill="#FFFFFF" stroke="#C7D8F5"/>
+        <text x="700" y="160" text-anchor="middle" fill="#1D1D1F">确认等待</text>
+      </g>
+    </g>
+    <line x1="506" y1="592" x2="506" y2="618" stroke="#AEAEB2" stroke-width="2" marker-end="url(#arrow)"/>
+
+    <!-- 底层 llama.cpp -->
+    <g transform="translate(96,620)">
+      <rect width="820" height="130" rx="20" fill="#F5F5F7" stroke="#D9D9DE"/>
+      <text x="36" y="52" font-size="26" font-weight="700" fill="#1D1D1F">llama.cpp 底座 · 开源（MIT）</text>
+      <text x="36" y="92" font-size="19" fill="#6E6E73">只作黑盒推理内核 · 锁版本跟进安全更新 · 不碰 C kernel</text>
+    </g>
+    <path d="M916,685 L960,685" stroke="#AEAEB2" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="916" y="662" font-size="16" fill="#6E6E73">加载</text>
+    <g transform="translate(980,622)">
+      <rect width="190" height="130" rx="20" fill="#F5F5F7" stroke="#D9D9DE"/>
+      <text x="95" y="56" font-size="20" font-weight="700" fill="#1D1D1F" text-anchor="middle">量化模型</text>
+      <text x="95" y="88" font-size="16" fill="#6E6E73" text-anchor="middle">GGUF</text>
+      <text x="95" y="112" font-size="16" fill="#6E6E73" text-anchor="middle">按内存选档</text>
+    </g>
+  </g>
+
+  <!-- 右列：训练侧 -->
+  <g font-family="-apple-system,'PingFang SC',sans-serif">
+    <rect x="1230" y="210" width="274" height="598" rx="20" fill="#FFF7EA" stroke="#FF9F0A" stroke-width="1.5"/>
+    <text x="1260" y="258" font-size="24" font-weight="700" fill="#FF9F0A">训练侧 · 我们做</text>
+    <text x="1260" y="310" font-size="20" font-weight="600" fill="#1D1D1F">1 继续训练</text>
+    <text x="1260" y="342" font-size="16" fill="#6E6E73">基于 Qwen3-1.7B 开源模型</text>
+    <text x="1260" y="366" font-size="16" fill="#6E6E73">SFT17 · 2764 步 · 2 epochs</text>
+    <text x="1260" y="394" font-size="14" font-weight="600" fill="#B25E00">学习率：WSD（预热-稳定-衰减）</text>
+    <text x="1260" y="414" font-size="14" fill="#6E6E73">对比普通恒定 LR，同语料下</text>
+    <text x="1260" y="434" font-size="14" fill="#6E6E73">loss 更低（附对照曲线）</text>
+    <line x1="1260" y1="454" x2="1474" y2="454" stroke="#FFD9A0"/>
+    <text x="1260" y="494" font-size="20" font-weight="600" fill="#1D1D1F">2 合成数据</text>
+    <text x="1260" y="526" font-size="16" fill="#6E6E73">10M+ tokens 工具调用/</text>
+    <text x="1260" y="550" font-size="16" fill="#6E6E73">对话语料（云端教师模型）</text>
+    <line x1="1260" y1="576" x2="1474" y2="576" stroke="#FFD9A0"/>
+    <text x="1260" y="616" font-size="20" font-weight="600" fill="#1D1D1F">3 量化五档</text>
+    <text x="1260" y="648" font-size="16" fill="#6E6E73">Q8_0 / Q6_K / Q5_K_M /</text>
+    <text x="1260" y="672" font-size="16" fill="#6E6E73">Q4_K_M / Q4_K_M_emb8</text>
+    <line x1="1260" y1="698" x2="1474" y2="698" stroke="#FFD9A0"/>
+    <text x="1260" y="738" font-size="20" font-weight="600" fill="#1D1D1F">4 评测闭环</text>
+    <text x="1260" y="770" font-size="16" fill="#6E6E73">工具调用 40 题 · 幻觉率 ·</text>
+    <text x="1260" y="794" font-size="16" fill="#6E6E73">原版对拍 → 回训迭代</text>
+  </g>
+
+  <line x1="96" y1="816" x2="1504" y2="816" stroke="#D9D9DE"/>
+  <text x="96" y="854" font-family="-apple-system,'PingFang SC',sans-serif" font-size="22" font-weight="600" fill="#1D1D1F">结论：底座借力开源，价值全在蓝色部分——训练、引擎、工具链、评测，四件事全是自己做的。</text>
+  <text x="96" y="884" font-family="-apple-system,'PingFang SC',sans-serif" font-size="16" fill="#AEAEB2">来源：engine/Sources/EngineKit · 训练机 SFT17 链路 · 模型口径「基于 Qwen3 继续训练」</text>
+</svg>

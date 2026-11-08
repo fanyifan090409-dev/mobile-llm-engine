@@ -1,0 +1,43 @@
+# AIY PPT 数据图共享样式（苹果视觉 token）——所有 matplotlib 图共用，改一处全图生效
+# 色板：蓝 #0A84FF 绿 #30D158 橙 #FF9F0A 红 #FF3B30 灰阶 1D1D1F/6E6E73/AEAEB2/C7C7CC
+# 画布：1600×900 @200dpi = 8×4.5 inch；页边距由各图函数控制
+
+figure.facecolor: FFFFFF
+savefig.facecolor: FFFFFF
+axes.facecolor: FFFFFF
+axes.edgecolor: D9D9DE
+axes.linewidth: 0.8
+axes.titlesize: 15
+axes.labelsize: 11
+axes.labelcolor: 1D1D1F
+axes.grid: True
+axes.grid.axis: y
+grid.color: E5E5EA
+grid.linewidth: 0.7
+grid.alpha: 1.0
+
+xtick.color: 6E6E73
+ytick.color: 6E6E73
+xtick.labelsize: 10
+ytick.labelsize: 10
+xtick.direction: out
+ytick.direction: out
+xtick.major.size: 4
+ytick.major.size: 4
+xtick.major.pad: 6
+ytick.major.pad: 6
+
+font.family: sans-serif
+font.sans-serif: PingFang SC, Arial Unicode MS, Hiragino Sans GB, Helvetica Neue, sans-serif
+font.size: 11
+
+lines.linewidth: 1.6
+lines.solid_capstyle: round
+patch.linewidth: 0
+savefig.dpi: 200
+# 禁止 tight bbox：所有图必须精确 1600×900（PPT 版式契约，v2 铁律）
+
+legend.frameon: False
+legend.fontsize: 10
+legend.labelcolor: 6E6E73
+legend.borderpad: 0.4

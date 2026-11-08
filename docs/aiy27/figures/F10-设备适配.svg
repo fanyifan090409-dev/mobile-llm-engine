@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="96" y="112" font-family="-apple-system,'PingFang SC',sans-serif" font-size="44" font-weight="700" fill="#1D1D1F">设备适配 · 好手机坏手机都能用</text>
+  <text x="96" y="158" font-family="-apple-system,'PingFang SC',sans-serif" font-size="24" fill="#6E6E73">按内存自动选档，前提说清楚——低配也能用，只是任务简单、速度慢</text>
+
+  <g font-family="-apple-system,'PingFang SC',sans-serif">
+    <!-- 档位卡 1：无法运行 -->
+    <g transform="translate(96,228)">
+      <rect width="340" height="340" rx="20" fill="#F7F7FA" stroke="#D9D9DE"/>
+      <text x="32" y="62" font-size="30" font-weight="700" fill="#1D1D1F">&lt;1.5GB 内存</text>
+      <rect x="32" y="86" width="64" height="8" rx="4" fill="#D9D9DE"/>
+      <text x="32" y="140" font-size="21" font-weight="700" fill="#6E6E73">无法运行</text>
+      <text x="32" y="176" font-size="16" fill="#AEAEB2">如实说明，不硬吹——</text>
+      <text x="32" y="202" font-size="16" fill="#AEAEB2">老设备有物理边界。</text>
+    </g>
+    <!-- 档位卡 2：0.6B -->
+    <g transform="translate(458,228)">
+      <rect width="340" height="340" rx="20" fill="#F7F7FA" stroke="#D9D9DE"/>
+      <text x="32" y="62" font-size="30" font-weight="700" fill="#1D1D1F">≥1.5GB 内存</text>
+      <rect x="32" y="86" width="64" height="8" rx="4" fill="#AEAEB2"/>
+      <text x="32" y="140" font-size="21" font-weight="700" fill="#3A3A3C">0.6B 档 · 基础任务</text>
+      <text x="32" y="176" font-size="16" fill="#6E6E73">运行时约 0.5GB</text>
+      <text x="32" y="202" font-size="16" fill="#6E6E73">老手机也能用</text>
+      <text x="32" y="228" font-size="16" fill="#6E6E73">工具调用 40/40 全过</text>
+      <rect x="32" y="254" width="276" height="56" rx="28" fill="#E8E8ED"/>
+      <text x="170" y="289" font-size="17" font-weight="600" fill="#6E6E73" text-anchor="middle">能用，但任务简单、速度慢</text>
+    </g>
+    <!-- 档位卡 3：1.7B 主力 -->
+    <g transform="translate(820,228)">
+      <rect width="340" height="340" rx="20" fill="#EAF3FF" stroke="#0A84FF" stroke-width="2"/>
+      <text x="32" y="62" font-size="30" font-weight="700" fill="#0A84FF">≥3GB 内存</text>
+      <rect x="32" y="86" width="64" height="8" rx="4" fill="#0A84FF"/>
+      <text x="32" y="140" font-size="21" font-weight="700" fill="#0A84FF">1.7B 档 · 主力体验</text>
+      <text x="32" y="176" font-size="16" fill="#1D1D1F">运行时 1.65GB（实测）</text>
+      <text x="32" y="202" font-size="16" fill="#1D1D1F">工具调用 90-97.5%</text>
+      <text x="32" y="228" font-size="16" fill="#1D1D1F">iPhone 16/17/18 Pro</text>
+      <text x="32" y="254" font-size="16" fill="#1D1D1F">真机矩阵实测进行中</text>
+      <rect x="32" y="280" width="276" height="40" rx="20" fill="#FFFFFF" stroke="#C7D8F5"/>
+      <text x="170" y="307" font-size="17" font-weight="600" fill="#0A84FF" text-anchor="middle">当前主力档</text>
+    </g>
+    <!-- 档位卡 4：4B 预留 -->
+    <g transform="translate(1182,228)">
+      <rect width="340" height="340" rx="20" fill="#FFFFFF" stroke="#C7C7CC" stroke-dasharray="8 6"/>
+      <text x="32" y="62" font-size="30" font-weight="700" fill="#AEAEB2">≥6GB 内存</text>
+      <rect x="32" y="86" width="64" height="8" rx="4" fill="#C7C7CC"/>
+      <text x="32" y="140" font-size="21" font-weight="700" fill="#AEAEB2">4B 档 · 预留</text>
+      <text x="32" y="176" font-size="16" fill="#AEAEB2">更复杂任务的下一步</text>
+      <text x="32" y="202" font-size="16" fill="#AEAEB2">规划中，尚未实现</text>
+    </g>
+
+    <!-- 统一纪律条 -->
+    <g transform="translate(96,606)">
+      <rect width="1426" height="78" rx="20" fill="#F7F7FA" stroke="#D9D9DE"/>
+      <text x="36" y="48" font-size="20" font-weight="600" fill="#1D1D1F">所有档位同一条纪律：</text>
+      <text x="330" y="48" font-size="20" font-weight="700" fill="#1D1D1F">断网可用 · 数据不出设备 · 关键操作人确认</text>
+    </g>
+
+    <!-- 未来展望条 -->
+    <g transform="translate(96,708)">
+      <rect width="1426" height="78" rx="20" fill="#EAF3FF" stroke="#0A84FF" stroke-width="2"/>
+      <text x="36" y="48" font-size="20" font-weight="700" fill="#0A84FF">未来自由搭配：</text>
+      <text x="240" y="48" font-size="20" font-weight="600" fill="#1D1D1F">1.7B 领队 + 0.6B 工人，按任务分发，用户自主 DIY</text>
+      <text x="1230" y="48" font-size="17" font-weight="600" fill="#6E6E73">——规划中，尚未实现</text>
+    </g>
+  </g>
+
+  <line x1="96" y1="816" x2="1504" y2="816" stroke="#D9D9DE"/>
+  <text x="96" y="854" font-family="-apple-system,'PingFang SC',sans-serif" font-size="22" font-weight="600" fill="#1D1D1F">结论：不是「好手机专用」的产品——低配跑 0.6B 基础任务，主流跑 1.7B 主力档，同一套隐私与安全纪律。</text>
+  <text x="96" y="884" font-family="-apple-system,'PingFang SC',sans-serif" font-size="16" fill="#AEAEB2">来源：档位规则为 EngineKit resolveTier 代码实现 · 1.7B 运行时内存为 SFT17 报告实测 · 0.6B 工具调用 40/40（2026-10-26）</text>
+</svg>
