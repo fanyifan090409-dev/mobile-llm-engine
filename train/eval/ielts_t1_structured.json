@@ -1,0 +1,73 @@
+{
+  "tasks": {
+    "t1-line-internet": {
+      "chart_type": "line",
+      "unit": "%",
+      "x_label": "year",
+      "years": [2000, 2005, 2010, 2015, 2020],
+      "series": {
+        "A": [20, 45, 65, 80, 92],
+        "B": [10, 25, 45, 65, 85],
+        "C": [5, 12, 25, 45, 70]
+      }
+    },
+    "t1-bar-activities": {
+      "chart_type": "bar",
+      "unit": "hours per week",
+      "categories": ["reading", "sport", "streaming", "socialising"],
+      "groups": {
+        "18-30": [3, 6, 12, 8],
+        "45-60": [7, 4, 5, 3]
+      }
+    },
+    "t1-pie-energy": {
+      "chart_type": "pie",
+      "unit": "%",
+      "years": {
+        "2005": {"coal": 45, "natural gas": 25, "nuclear": 15, "hydropower": 10, "solar and wind": 5},
+        "2025": {"coal": 20, "natural gas": 30, "nuclear": 10, "hydropower": 15, "solar and wind": 25}
+      }
+    },
+    "t1-table-tourism": {
+      "chart_type": "table",
+      "columns": ["international arrivals (millions)", "tourism spending (billion dollars)"],
+      "rows": {
+        "France": [9000, 700],
+        "Spain": [8500, 650],
+        "the United States": [8000, 1200],
+        "China": [6500, 900],
+        "Japan": [3000, 400]
+      }
+    },
+    "t1-process-recycling": {
+      "chart_type": "process",
+      "steps": [
+        "old plastic bottles are collected from recycling bins",
+        "the bottles are transported to a sorting plant",
+        "they are sorted by colour and plastic type",
+        "the sorted bottles are washed and their labels removed",
+        "the bottles are crushed into thin flakes",
+        "the flakes are melted into granules",
+        "the granules are spun into fibres",
+        "the fibres are woven into clothing"
+      ]
+    },
+    "t1-map-town": {
+      "chart_type": "map",
+      "before": [
+        "a market square in the centre",
+        "a small car park in the east",
+        "a bus stop in the north",
+        "a narrow shopping street in the south",
+        "few trees"
+      ],
+      "changes": [
+        "the market square in the centre became a pedestrian area",
+        "the car park in the east was replaced by a garden",
+        "the bus stop moved from the north side to the north-east corner",
+        "the narrow shopping street in the south was widened and given trees and cycle lanes",
+        "a new library was built in the west"
+      ]
+    }
+  }
+}

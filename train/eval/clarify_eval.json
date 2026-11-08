@@ -1,0 +1,180 @@
+{
+  "ambiguous": [
+    {
+      "user": "看房",
+      "expect": "clarify"
+    },
+    {
+      "user": "夜跑",
+      "expect": "clarify"
+    },
+    {
+      "user": "帮我约个事，具体时间我发你",
+      "expect": "clarify"
+    },
+    {
+      "user": "提醒我吃药",
+      "expect": "clarify"
+    },
+    {
+      "user": "明天下午提醒我交作业",
+      "expect": "clarify"
+    },
+    {
+      "user": "帮我订个会议室",
+      "expect": "clarify"
+    },
+    {
+      "user": "把那个会改到下午",
+      "expect": "clarify"
+    },
+    {
+      "user": "删掉刚才那个提醒",
+      "expect": "clarify"
+    },
+    {
+      "user": "把下周的会改到上周",
+      "expect": "clarify"
+    },
+    {
+      "user": "帮我叫个外卖",
+      "expect": "refuse"
+    },
+    {
+      "user": "帮我发微信给妈妈",
+      "expect": "refuse"
+    },
+    {
+      "user": "复习微积分",
+      "expect": "clarify"
+    },
+    {
+      "user": "背单词，帮我安排下",
+      "expect": "clarify"
+    },
+    {
+      "user": "这周五下午帮我留个时间",
+      "expect": "clarify"
+    },
+    {
+      "user": "提醒我一下",
+      "expect": "clarify"
+    },
+    {
+      "user": "把提醒提前半小时",
+      "expect": "clarify"
+    },
+    {
+      "user": "明天上午九点帮我弄个提醒",
+      "expect": "clarify"
+    },
+    {
+      "user": "帮我把明天的会改到昨天",
+      "expect": "clarify"
+    },
+    {
+      "user": "帮我买张电影票",
+      "expect": "refuse"
+    },
+    {
+      "user": "练口语，要不定个时间",
+      "expect": "clarify"
+    }
+  ],
+  "dispatch": [
+    {
+      "user": "帮我约个牙医，明天下午三点，地点在口腔医院",
+      "workers": [
+        "calendar_worker"
+      ]
+    },
+    {
+      "user": "明天下午三点提醒我吃药",
+      "workers": [
+        "reminder_worker"
+      ]
+    },
+    {
+      "user": "把这段翻译成英文：我明天不能参加会议",
+      "workers": [
+        "translate_worker"
+      ]
+    },
+    {
+      "user": "帮我总结一下这段：马拉松志愿服务落地滨江赛道，牵头人提前一周拉了任务清单，把物料、人员和动线逐项过了一遍。整场花费1500元，对账后结余110元。现场人员比约定时间早40分钟到位，报名名单最后停在40人。收尾点评里，督导认可了节奏控制，同时点名台账格式需要统一。",
+      "workers": [
+        "summary_worker"
+      ]
+    },
+    {
+      "user": "明天下午两点开会，晚上八点提醒我吃药",
+      "workers": [
+        "calendar_worker",
+        "reminder_worker"
+      ]
+    },
+    {
+      "user": "这周六上午十点在学校开家长会，记得带成绩单",
+      "workers": [
+        "calendar_worker"
+      ]
+    },
+    {
+      "user": "下周一早上八点半提醒我交报告",
+      "workers": [
+        "reminder_worker"
+      ]
+    },
+    {
+      "user": "把这段翻译成中文：Please confirm before Friday.",
+      "workers": [
+        "translate_worker"
+      ]
+    },
+    {
+      "user": "明天下午三点开会，另外把这段翻译成英文：会议改到四点",
+      "workers": [
+        "calendar_worker",
+        "translate_worker"
+      ]
+    },
+    {
+      "user": "后天晚上七点提醒我给爸爸打电话",
+      "workers": [
+        "reminder_worker"
+      ]
+    },
+    {
+      "user": "把这段话缩成三句：公司第三季度营收同比增长18%，主要来自海外市场。毛利率从32%提升到35%，但研发费用增加了两成。管理层计划明年在欧洲增设两个办事处，同时压缩行政开支。",
+      "workers": [
+        "summary_worker"
+      ]
+    }
+  ],
+  "chat": [
+    {
+      "user": "1+1等于几？"
+    },
+    {
+      "user": "你好，简单介绍一下你自己"
+    },
+    {
+      "user": "什么是微积分？"
+    },
+    {
+      "user": "帮我解释一下牛顿第二定律"
+    },
+    {
+      "user": "你好"
+    },
+    {
+      "user": "你能做什么？"
+    },
+    {
+      "user": "给我讲个笑话"
+    },
+    {
+      "user": "今天适合穿什么衣服？"
+    }
+  ]
+}

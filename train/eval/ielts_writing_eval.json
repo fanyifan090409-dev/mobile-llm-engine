@@ -1,0 +1,94 @@
+{
+  "tasks": [
+    {
+      "id": "t1-line-internet",
+      "task": 1,
+      "type": "line graph",
+      "min_words": 150,
+      "prompt": "The graph below shows the percentage of households with internet access in three countries between 2000 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+      "data": "数据（家庭互联网普及率）：2000 年 A 国 20%、B 国 10%、C 国 5%；2005 年 45%/25%/12%；2010 年 65%/45%/25%；2015 年 80%/65%/45%；2020 年 92%/85%/70%。"
+    },
+    {
+      "id": "t1-bar-activities",
+      "task": 1,
+      "type": "bar chart",
+      "min_words": 150,
+      "prompt": "The bar chart below shows the average number of hours per week spent on four leisure activities by two age groups in 2025. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+      "data": "数据（每周平均小时）：18-30 岁——阅读 3、运动 6、流媒体 12、社交 8；45-60 岁——阅读 7、运动 4、流媒体 5、社交 3。"
+    },
+    {
+      "id": "t1-pie-energy",
+      "task": 1,
+      "type": "pie charts",
+      "min_words": 150,
+      "prompt": "The two pie charts below show the sources of electricity in one country in 2005 and 2025. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+      "data": "数据（电力来源占比）：2005 年——煤 45%、天然气 25%、核能 15%、水电 10%、太阳能/风能 5%；2025 年——煤 20%、天然气 30%、核能 10%、水电 15%、太阳能/风能 25%。"
+    },
+    {
+      "id": "t1-table-tourism",
+      "task": 1,
+      "type": "table",
+      "min_words": 150,
+      "prompt": "The table below shows the number of international tourist arrivals and tourism spending in five countries in 2024. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+      "data": "数据（2024 年）：法国——入境 9000 万人次、旅游支出 700 亿美元；西班牙——8500 万、650 亿；美国——8000 万、1200 亿；中国——6500 万、900 亿；日本——3000 万、400 亿。"
+    },
+    {
+      "id": "t1-process-recycling",
+      "task": 1,
+      "type": "process diagram",
+      "min_words": 150,
+      "prompt": "The diagram below shows how used plastic bottles are recycled and turned into clothing fibres. Summarise the information by selecting and reporting the main features.",
+      "data": "流程：1) 从回收箱收集旧塑料瓶；2) 运到分拣厂；3) 按颜色和塑料类型分拣；4) 清洗并去除标签；5) 粉碎成薄片；6) 熔化成颗粒；7) 颗粒纺成纤维；8) 纤维织成衣物。"
+    },
+    {
+      "id": "t1-map-town",
+      "task": 1,
+      "type": "map",
+      "min_words": 150,
+      "prompt": "The two maps below show a town centre before and after a redevelopment project. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+      "data": "改造前：中心是集市广场；东侧有小停车场；北侧有公交站；南侧是狭窄商业街；树木很少。改造后：集市广场改为步行区；停车场改为花园；公交站移到东北侧；商业街加宽并增加树木和自行车道；西侧新建图书馆。"
+    },
+    {
+      "id": "t2-opinion-transport",
+      "task": 2,
+      "type": "opinion",
+      "min_words": 250,
+      "prompt": "Some people believe governments should spend more money on public transport than on building new roads. To what extent do you agree or disagree?"
+    },
+    {
+      "id": "t2-discussion-university",
+      "task": 2,
+      "type": "discussion",
+      "min_words": 250,
+      "prompt": "Some people think university education should be free for all students, while others believe students should pay at least part of the cost. Discuss both views and give your own opinion."
+    },
+    {
+      "id": "t2-problem-living-alone",
+      "task": 2,
+      "type": "problem-solution",
+      "min_words": 250,
+      "prompt": "In many large cities, an increasing number of people live alone. What are the causes of this trend, and what solutions can you suggest?"
+    },
+    {
+      "id": "t2-advantage-remote",
+      "task": 2,
+      "type": "advantages-disadvantages",
+      "min_words": 250,
+      "prompt": "More employees now work from home instead of travelling to an office. Do the advantages of this trend outweigh the disadvantages?"
+    },
+    {
+      "id": "t2-two-part-volunteering",
+      "task": 2,
+      "type": "two-part question",
+      "min_words": 250,
+      "prompt": "Why do some people choose to do volunteer work? Should secondary schools require students to take part in community service?"
+    },
+    {
+      "id": "t2-opinion-ai-education",
+      "task": 2,
+      "type": "opinion",
+      "min_words": 250,
+      "prompt": "Some people believe artificial intelligence will do more harm than good to education. To what extent do you agree or disagree?"
+    }
+  ]
+}
