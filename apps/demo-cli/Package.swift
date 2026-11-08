@@ -12,6 +12,12 @@ let package = Package(
             name: "demo-cli",
             dependencies: [
                 .product(name: "EngineKit", package: "engine")
+            ],
+            resources: [
+                .copy("Resources/math.js"),
+                .copy("Resources/MathEvalBridge.js"),
+                .copy("Resources/calc_acceptance.json"),
+                .copy("Resources/mathjs-LICENSE.txt")
             ]
         )
     ]
