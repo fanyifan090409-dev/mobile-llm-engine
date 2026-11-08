@@ -26,11 +26,12 @@ CAS_CLI = os.path.join(ROOT, "train/eval/cas_eval_cli.js")
 SYSTEM = (
     "你是数学助手。遇到需要精确计算时，第一步只输出一个工具调用块，不要输出其他内容，格式：\n"
     '<tool_call>\n{"name": "math_eval", "arguments": {"op": "eval", "expr": "x^2+3*x"}}\n</tool_call>\n'
+    "expr 用 math.js 语法：乘方 ^、乘法 *、函数 sin(x)/cos(x)/exp(x)/log(x)/log(x, 底数)；不要用 LaTeX 的 {}、\\frac、\\log_2。\n"
     "op 可选 eval（求值）/ derivative（求导）/ simplify（化简）/ integrate_def（定积分）/ solve（解方程）/ stats（统计）。"
     'solve 可写 "x^2-5x+6=0"；积分与解方程用 lower/upper 给区间（可写 pi/2）；'
-    "stats 用 stat_op 与 data：mean/median/variance/std/variance_pop/std_pop/iqr/sum/min/max/combination/permutation/binomial/regression，"
-    'data 逗号分隔，regression 用 "x1,y1;x2,y2"。'
-    "收到工具结果后，再用中文简要讲解，并在最后一行写【答案】。"
+    "stats 用 stat_op 与 data：mean/median/variance/std/variance_pop/std_pop/iqr/sum/min/max/combination/permutation/binomial/regression/normalcdf，"
+    'data 逗号分隔，regression 用 "x1,y1;x2,y2"，normalcdf 用 "mu,sigma,x"。'
+    "收到工具结果后，如果还需要下一步计算就继续调用工具；否则用中文简要讲解，并在最后一行写【答案】。"
 )
 TC_RE = re.compile(r"<tool_call>\s*(\{.*?\})\s*</tool_call>", re.S)
 ARG_KEYS = ("op", "expr", "variable", "lower", "upper", "stat_op", "data")
@@ -46,11 +47,32 @@ def chat(port, messages, max_tokens):
         return json.loads(resp.read())["choices"][0]["message"].get("content") or ""
 
 
+def cas_resources():
+    env = os.environ.get("CAS_RESOURCES")
+    if env:
+        return env
+    for rel in ("apps/demo-cli/Sources/demo-cli/Resources", "eval_cas"):
+        path = os.path.join(ROOT, rel)
+        if os.path.exists(os.path.join(path, "math.js")):
+            return path
+    return os.path.join(ROOT, "eval_cas")
+
+
+def loads_call(raw):
+    """模型把 LaTeX 直接塞进 JSON（\\left、\\frac）时是非法 JSON；先把 LaTeX 命令的反斜杠补一层。
+    注意 \\right / \\tan 会被 JSON 当成 \\r / \\t + 字母，所以字母开头的反斜杠一律先转义。"""
+    fixed = re.sub(r"\\(?=[A-Za-z])", r"\\\\", raw)
+    fixed = re.sub(r'\\(?!["\\/bfnrtu])', r"\\\\", fixed)
+    try:
+        return json.loads(fixed, strict=False)
+    except json.JSONDecodeError:
+        return json.loads(raw, strict=False)
+
+
 def cas_call(arguments):
     req = {k: str(arguments[k]) for k in ARG_KEYS if k in arguments and arguments[k] is not None}
     env = dict(os.environ)
-    env.setdefault("CAS_RESOURCES", os.path.join(
-        ROOT, "apps/demo-cli/Sources/demo-cli/Resources"))
+    env["CAS_RESOURCES"] = cas_resources()
     try:
         p = subprocess.run(["node", CAS_CLI], input=json.dumps(req), text=True,
                            capture_output=True, env=env, timeout=30)
@@ -97,8 +119,12 @@ def main():
             messages.append({"role": "assistant", "content": text})
             for raw in TC_RE.findall(text):
                 try:
-                    obj = json.loads(raw)
+                    obj = loads_call(raw)
                     call_args = obj.get("arguments") or {}
+                    if isinstance(call_args, str):
+                        call_args = json.loads(call_args)
+                    if not isinstance(call_args, dict):
+                        raise ValueError("arguments 必须是 JSON 对象")
                     if obj.get("name") != "math_eval":
                         raise ValueError(f"未知工具 {obj.get('name')}")
                 except Exception as exc:

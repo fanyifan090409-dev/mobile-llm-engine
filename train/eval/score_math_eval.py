@@ -31,15 +31,25 @@ def clean(s):
     s = re.sub(r"e\^(\w)", r"\\exp(\1)", s)
     s = re.sub(r"(?<![A-Za-z\\])x\(", "x*(", s)
     s = s.replace(")(", ")*(")
+    # 模型常写隐式乘法（4 x、cos(4 x)）；补 * 才能 sympify。log_2( 这类下标不补
+    s = re.sub(r"(?<![\w_])(\d)\s*(?=[A-Za-z(])", r"\1*", s)
+    s = re.sub(r"\)\s*(?=[A-Za-z0-9(])", ")*", s)
     return s
 
 
 def parse_one(seg):
-    for fn in (lambda t: parse_latex(clean(t)),
-               lambda t: sp.sympify(clean(t).replace("^", "**")),
-               lambda t: sp.sympify(clean(t))):
+    c = clean(seg)
+    # 纯文本先 sympify（避免 parse_latex 把 cos 拆成 c*o*s）；含 LaTeX 命令仍先 parse_latex
+    plain = "\\" not in seg
+    fns = ((lambda t: sp.sympify(t.replace("^", "**"))),
+           (lambda t: sp.sympify(t)),
+           (lambda t: parse_latex(t))) if plain else (
+          (lambda t: parse_latex(t)),
+          (lambda t: sp.sympify(t.replace("^", "**"))),
+          (lambda t: sp.sympify(t)))
+    for fn in fns:
         try:
-            obj = fn(seg)
+            obj = fn(c)
             if obj is not None:
                 return obj.subs({sp.Symbol("pi"): sp.pi, sp.Symbol("e"): sp.E,
                                  sp.Symbol("i"): sp.I})
@@ -123,6 +133,25 @@ def sample_match(a, b):
 
 def candidates(block):
     out = []
+    # 【答案】直接写 math.js 表达式（没有 $…$）时整块解析；solve 的 "2, 3" 是 Tuple，交给数字兜底。
+    # 含等号/中文的块不整块解析（x = -4 走 XEQ，slope=… 走数字兜底），避免 parse_latex 误读。
+    plain = block.replace("（数值解）", "").strip()
+    if "=" not in plain and not re.search(r"[\u4e00-\u9fff]", plain):
+        c = clean(plain)
+        for fn in (lambda s: sp.sympify(s.replace("^", "**")),
+                   lambda s: sp.sympify(s),
+                   lambda s: parse_latex(s)):
+            try:
+                obj = fn(c)
+            except Exception:
+                continue
+            if obj is None:
+                continue
+            if isinstance(obj, (tuple, sp.Tuple)):
+                break
+            out.append(rhs_of(obj.subs({sp.Symbol("pi"): sp.pi, sp.Symbol("e"): sp.E,
+                                        sp.Symbol("i"): sp.I})))
+            break
     for m in MATH_BLOCK.finditer(block):
         seg = m.group(1) or m.group(2)
         out.extend(parse_seg(seg))
