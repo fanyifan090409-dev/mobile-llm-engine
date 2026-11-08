@@ -9,8 +9,9 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
     try {
       if (typeof v === 'number' && isFinite(v)) {
         const fr = math.fraction(v);
-        // mathjs 的 Fraction 用 s 存符号、n 只存绝对值，直接拼 n 会把 -2 变成 2
-        if (fr && fr.d === 1n) return (fr.s < 0n ? '-' : '') + fr.n.toString();
+        // mathjs 的 Fraction 用 s 存符号、n 只存绝对值，直接拼 n 会把 -2 变成 2；
+        // 数值积分的 -0 也要归一成 0，否则训练/展示会出现「-0」
+        if (fr && fr.d === 1n) return fr.n === 0n ? '0' : (fr.s < 0n ? '-' : '') + fr.n.toString();
         if (fr && fr.d <= 10000n) return math.format(fr);
         return math.format(v, { precision: 14 });
       }
