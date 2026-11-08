@@ -38,7 +38,13 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
     s = s.replace(/\\?log\s*_\s*\{?(\d+)\}?\s*\(([^()]*)\)/g, 'log($2,$1)');
     s = s.replace(/\blog\s*_?\s*(\d+)\s*\(([^()]*)\)/g, 'log($2,$1)');
     s = s.replace(/\blog\s*_?\s*(\d+)\s+([0-9.]+)/g, 'log($2,$1)');
+    s = s.replace(/(\d)\s*\\(arctan|arcsin|arccos|sin|cos|tan|exp|log|sqrt|abs)/g, '$1*$2');
+    s = s.replace(/\\(arctan|arcsin|arccos)/g, '$1')
+         .replace(/\b(arctan|arcsin|arccos)\b/g,
+                  (m) => ({ arctan: 'atan', arcsin: 'asin', arccos: 'acos' }[m]));
     s = s.replace(/\\(sin|cos|tan|exp|log|sqrt|abs|pi|theta|phi)/g, '$1');
+    // sin x / arctan x 这类省括号写法补成 sin(x)
+    s = s.replace(/\b(atan|asin|acos|sin|cos|tan|log|sqrt|exp|abs)\s+([A-Za-z0-9_.^]+)/g, '$1($2)');
     s = s.replace(/\{/g, '(').replace(/\}/g, ')');
     return s;
   }

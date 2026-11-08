@@ -12,7 +12,12 @@ final class MathEvalTool: LocalTool {
         + "solve 可写 \"x^2-5x+6=0\"；积分与解方程用 lower/upper 给区间（可写 pi/2）；"
         + "stats 用 stat_op 与 data：mean/median/variance/std/variance_pop/std_pop/iqr/sum/min/max/combination/permutation/binomial/regression/normalcdf，"
         + "data 逗号分隔，regression 用 \"x1,y1;x2,y2\"，normalcdf 用 \"mu,sigma,x\"。"
-        + "收到工具结果后，如果还需要下一步计算就继续调用工具；否则用中文简要讲解，并在最后一行写【答案】。")
+        + "解题约定：面积先判断哪条曲线在上方，再用上曲线减下曲线积分；平均值 = 定积分 ÷ 区间长度；"
+        + "二阶行列式 = ad - bc；\\binom{n}{k} 用 stats combination；正态概率用 stats normalcdf；二项分布 Var(X)=n p (1-p)；"
+        + "两点距离 = sqrt((x2-x1)^2+(y2-y1)^2)；1+2+...+n = n(n+1)/2；"
+        + "反函数值先求反函数再代入（开方取定义域内的根）；f(g(a)) 先算 g(a) 再代入 f；"
+        + "多项式除以 x-a 的余数 = P(a)；等比数列首项到 a*r^k 共 k+1 项，和 = a*(r^(k+1)-1)/(r-1)。"
+        + "收到工具结果后，如果还需要下一步计算就继续调用工具；否则用中文简要讲解，并在最后一行写【答案】，答案必须与工具结果一致。")
 
     let spec = ToolSpec(
         name: "math_eval",
