@@ -68,6 +68,10 @@ def main():
 
     math_train = read_jsonl(os.path.join(ROOT, "data/math_eval_sft/train.jsonl"))
     math_val = read_jsonl(os.path.join(ROOT, "data/math_eval_sft/val.jsonl"))
+    for name, dst in (("multistep_train.jsonl", math_train), ("multistep_val.jsonl", math_val)):
+        path = os.path.join(ROOT, "data/math_eval_sft", name)
+        if os.path.exists(path):
+            dst.extend(read_jsonl(path))
 
     # 派单回放：单轮 800 + 多轮 200；多轮保留完整 tool 轨迹
     leader = read_jsonl(os.path.join(ROOT, "data/train_sft20_leader/train.jsonl"))

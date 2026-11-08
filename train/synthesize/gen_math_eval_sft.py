@@ -24,11 +24,12 @@ BATCH = os.path.join(ROOT, "train", "synthesize", "cas_batch.js")
 USAGE_PROMPT = (
     "你是数学助手。遇到需要精确计算时，第一步只输出一个工具调用块，不要输出其他内容，格式：\n"
     '<tool_call>\n{"name": "math_eval", "arguments": {"op": "eval", "expr": "x^2+3*x"}}\n</tool_call>\n'
+    "expr 用 math.js 语法：乘方 ^、乘法 *、函数 sin(x)/cos(x)/exp(x)/log(x)/log(x, 底数)；不要用 LaTeX 的 {}、\\frac、\\log_2。\n"
     "op 可选 eval（求值）/ derivative（求导）/ simplify（化简）/ integrate_def（定积分）/ solve（解方程）/ stats（统计）。"
     'solve 可写 "x^2-5x+6=0"；积分与解方程用 lower/upper 给区间（可写 pi/2）；'
-    "stats 用 stat_op 与 data：mean/median/variance/std/variance_pop/std_pop/iqr/sum/min/max/combination/permutation/binomial/regression，"
-    'data 逗号分隔，regression 用 "x1,y1;x2,y2"。'
-    "收到工具结果后，再用中文简要讲解，并在最后一行写【答案】。"
+    "stats 用 stat_op 与 data：mean/median/variance/std/variance_pop/std_pop/iqr/sum/min/max/combination/permutation/binomial/regression/normalcdf，"
+    'data 逗号分隔，regression 用 "x1,y1;x2,y2"，normalcdf 用 "mu,sigma,x"。'
+    "收到工具结果后，如果还需要下一步计算就继续调用工具；否则用中文简要讲解，并在最后一行写【答案】。"
 )
 
 TARGETS = {"eval": 150, "derivative": 250, "simplify": 100,
@@ -112,6 +113,8 @@ def explain(category, result, case):
         if len(parts) > 1:
             return "解得 " + " 或 ".join(f"x = {p}" for p in parts) + "（数值解）。"
         return f"解得 x = {result}（数值解）。"
+    if category == "area":
+        return f"面积为 {result}。"
     if category == "stats":
         label = case.get("stat_label", "结果")
         if case["check"]["kind"] == "pick":
@@ -264,8 +267,24 @@ def gen_word(cases):
         return add_word(f"样本均值 50、总体标准差 {sigma}、样本量 {n}，求 95% 置信区间的边际误差（用 z*=1.96）。",
                         f"1.96*{sigma}/sqrt({n})", 1.96 * sigma / math.sqrt(n))
 
-    for make, n in [(z_score, 10), (p_add, 8), (cond, 7), (stand_err, 5),
-                    (binom_mean, 5), (binom_var, 5), (normal, 6), (ci_margin, 4)]:
+    def expectation():
+        k = random.randint(2, 4)
+        xs = random.sample(range(0, 6), k)
+        ws = [random.choice([1, 2, 3, 4, 5]) for _ in xs]
+        total = sum(ws)
+        ps = [round(w / total, 3) for w in ws]
+        ps[-1] = round(1 - sum(ps[:-1]), 3)
+        if min(ps) <= 0:
+            return False
+        expr = "+".join(f"{x}*{p}" for x, p in zip(xs, ps))
+        value = sum(x * p for x, p in zip(xs, ps))
+        problem = "离散随机变量 X 取 " + "、".join(map(str, xs)) + \
+            "，概率分别为 " + "、".join(map(str, ps)) + "，求 E(X)。"
+        return add_word(problem, expr, value, tol=1e-9)
+
+    for make, n in [(z_score, 30), (p_add, 12), (cond, 12), (stand_err, 16),
+                    (binom_mean, 20), (binom_var, 20), (normal, 10),
+                    (ci_margin, 30), (expectation, 30)]:
         fill(n, make)
 
 
@@ -287,10 +306,143 @@ def signed(n):
     return f"-{abs(n)}" if n < 0 else f"+{n}"
 
 
+def gen_normalcdf(cases):
+    made, guard = 0, 0
+    while made < 30 and guard < 3000:
+        guard += 1
+        mu = random.choice([50, 60, 65, 70, 75, 80, 100])
+        sigma = random.choice([5, 8, 10, 12, 15])
+        x = mu + random.choice([-3, -2, -1, 1, 2, 3]) * random.choice([2, 3, 5])
+        value = 0.5 * (1 + math.erf((x - mu) / (sigma * math.sqrt(2))))
+        problem = f"设 X ~ N({mu}, {sigma}^2)，求 P(X < {x})（保留四位小数）。"
+        made += int(add(cases, "stats", problem,
+                        {"op": "stats", "stat_op": "normalcdf", "data": f"{mu},{sigma},{x}"},
+                        {"kind": "num", "value": value, "tol": 1e-6}, stat_label="概率"))
+
+
+def gen_binomial(cases):
+    made, guard = 0, 0
+    while made < 60 and guard < 4000:
+        guard += 1
+        n = random.randint(5, 20)
+        k = random.randint(0, n)
+        p = random.choice([0.2, 0.25, 0.3, 0.4, 0.5, 0.6])
+        value = math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+        problem = f"设 X ~ B({n}, {p})，求 P(X = {k}) 的值。"
+        made += int(add(cases, "stats", problem,
+                        {"op": "stats", "stat_op": "binomial", "data": f"{n},{k},{p}"},
+                        {"kind": "num", "value": value, "tol": 1e-9}, stat_label="概率"))
+
+
+def gen_precalc_words(cases):
+    # 余数定理：P(x) 除以 (x-a) 的余数 = P(a)
+    made, guard = 0, 0
+    while made < 25 and guard < 3000:
+        guard += 1
+        a = random.randint(-4, 4)
+        deg = random.randint(2, 4)
+        terms = [(random.choice([-4, -3, -2, -1, 1, 2, 3, 4]), p) for p in range(deg, -1, -1)]
+        expr = poly_str(terms)
+        value = sum(c * (a ** p) for c, p in terms)
+        problem = f"求多项式 ${poly_tex(terms)}$ 除以 $x{signed(-a)}$ 的余数。"
+        call_expr = expr.replace("x", f"({a})")
+        made += int(add(cases, "eval", problem, {"op": "eval", "expr": call_expr},
+                        {"kind": "num", "value": float(value)}))
+
+    # 等比/等差求和：题面用 \cdots，工具调用写成闭式公式
+    made, guard = 0, 0
+    while made < 20 and guard < 2000:
+        guard += 1
+        r = random.choice([2, 3])
+        n = random.randint(4, 9)
+        a = random.choice([1, 2, 3])
+        terms = "+".join(str(a * r ** k) for k in range(3)) + f"+\\cdots+{a * r ** (n - 1)}"
+        value = a * (r ** n - 1) // (r - 1)
+        problem = f"求 ${terms}$ 的值。"
+        call_expr = f"{a}*({r}^{n}-1)/({r}-1)"
+        made += int(add(cases, "eval", problem, {"op": "eval", "expr": call_expr},
+                        {"kind": "num", "value": float(value)}))
+
+    made, guard = 0, 0
+    while made < 20 and guard < 2000:
+        guard += 1
+        a1 = random.randint(1, 5)
+        d = random.randint(1, 4)
+        n = random.randint(5, 20)
+        an = a1 + (n - 1) * d
+        terms = f"{a1}+{a1 + d}+{a1 + 2 * d}+\\cdots+{an}"
+        value = n * (a1 + an) // 2
+        problem = f"求 ${terms}$ 的值。"
+        call_expr = f"{n}*({a1}+{an})/2"
+        made += int(add(cases, "eval", problem, {"op": "eval", "expr": call_expr},
+                        {"kind": "num", "value": float(value)}))
+
+
+def gen_area(cases):
+    # f = g + h，h = k(x-a)(b-x) ≥ 0；面积 = ∫ h，训练模型先做 f-g 再积分
+    made, guard = 0, 0
+    while made < 25 and guard < 3000:
+        guard += 1
+        a, b = random.choice([(0, 1), (0, 2), (1, 2), (1, 3)])
+        k = random.choice([1, 2, 3])
+        m, c0 = random.randint(-3, 3), random.randint(-4, 4)
+        g_terms = [(m, 1), (c0, 0)]
+        f_terms = [(-k, 2), (k * (a + b) + m, 1), (c0 - k * a * b, 0)]
+        h_terms = [(-k, 2), (k * (a + b), 1), (-k * a * b, 0)]
+        value = Fraction(k * (b - a) ** 3, 6)
+        problem = (f"求曲线 $y={poly_tex(f_terms)}$ 与 $y={poly_tex(g_terms)}$ "
+                   f"在 $[{a},{b}]$ 上围成的面积。")
+        args = {"op": "integrate_def", "expr": poly_str(h_terms),
+                "lower": str(a), "upper": str(b)}
+        made += int(add(cases, "area", problem, args,
+                        {"kind": "num", "value": float(value), "tol": 1e-6}))
+
+
+def gen_latex_rational(cases):
+    made, guard = 0, 0
+    while made < 30 and guard < 3000:
+        guard += 1
+        a, c = random.randint(1, 5), random.randint(1, 4)
+        b, d = random.randint(-6, 6), random.randint(-6, 6)
+        if a * d - b * c == 0:
+            continue
+        expr = f"({linear_str(a, b)})/({linear_str(c, d)})"
+        expected = f"({a}*{d}-{b}*{c})/({linear_str(c, d)})^2"
+        problem = f"设 $f(x)=\\frac{{{a}x{signed(b)}}}{{{c}x{signed(d)}}}$，求 $f'(x)$。"
+        made += int(add(cases, "derivative", problem,
+                        {"op": "derivative", "expr": expr, "expected_expr": expected},
+                        {"kind": "match"}))
+
+
+def gen_latex_explog(cases):
+    made, guard = 0, 0
+    while made < 20 and guard < 2000:
+        guard += 1
+        kind = guard % 3
+        if kind == 0:
+            a, b = random.choice([2, 3]), random.choice([2, 3, 4])
+            expr = f"exp({a}*x)+log({b}*x)"
+            expected = f"{a}*exp({a}*x)+1/x"
+            problem = f"设 $f(x)=e^{{{a}x}}+\\log({b}x)$，求 $f'(x)$。"
+        elif kind == 1:
+            a = random.choice([2, 3])
+            expr = f"x^2*exp({a}*x)"
+            expected = f"2*x*exp({a}*x)+{a}*x^2*exp({a}*x)"
+            problem = f"设 $f(x)=x^{{2}}e^{{{a}x}}$，求 $f'(x)$。"
+        else:
+            a = random.choice([1, 2, 3])
+            expr = f"log(x^2+{a})"
+            expected = f"2*x/(x^2+{a})"
+            problem = f"设 $f(x)=\\log(x^{{2}}+{a})$，求 $f'(x)$。"
+        made += int(add(cases, "derivative", problem,
+                        {"op": "derivative", "expr": expr, "expected_expr": expected},
+                        {"kind": "match"}))
+
+
 def gen_latex_derivative(cases):
     """LaTeX 题面：练「把试卷写法翻译成 math.js 表达式」（69 题原题就是 LaTeX）。"""
     made, guard = 0, 0
-    while made < 10 and guard < 500:
+    while made < 40 and guard < 4000:
         guard += 1
         kind = guard % 8
         if kind == 0:
@@ -343,7 +495,7 @@ def gen_latex_derivative(cases):
 
 def gen_latex_integral(cases):
     made, guard = 0, 0
-    while made < 10 and guard < 500:
+    while made < 30 and guard < 2000:
         guard += 1
         kind = guard % 4
         if kind == 0:
@@ -667,11 +819,17 @@ def main():
     gen_word(cases)
     gen_derivative(cases)
     gen_latex_derivative(cases)
+    gen_latex_rational(cases)
+    gen_latex_explog(cases)
     gen_simplify(cases)
     gen_integrate(cases)
     gen_latex_integral(cases)
     gen_solve(cases)
     gen_stats(cases)
+    gen_normalcdf(cases)
+    gen_binomial(cases)
+    gen_precalc_words(cases)
+    gen_area(cases)
 
     req_path = os.path.join(OUTDIR, "requests.jsonl")
     res_path = os.path.join(OUTDIR, "results.jsonl")
