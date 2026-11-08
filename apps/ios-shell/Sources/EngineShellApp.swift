@@ -6,6 +6,11 @@ struct EngineShellApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .task {
+                    #if DEBUG
+                    print(VoicePOC.versionLine)
+                    #endif
+                }
         }
     }
 }

@@ -3,14 +3,25 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		AA0000000000000000000001 /* EngineShellApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000A /* EngineShellApp.swift */; };
 		AA0000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000B /* ContentView.swift */; };
 		AA0000000000000000000003 /* AppLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000C /* AppLog.swift */; };
+		AA0000000000000000000051 /* DemoChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000053 /* DemoChatView.swift */; };
+		AA0000000000000000000052 /* CalendarTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000054 /* CalendarTool.swift */; };
+		AA0000000000000000000055 /* ReminderTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000056 /* ReminderTool.swift */; };
+		AA0000000000000000000057 /* DemoHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000058 /* DemoHarness.swift */; };
+		AA0000000000000000000059 /* TimeHints.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000005A /* TimeHints.swift */; };
+		AA000000000000000000005B /* Onboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000005C /* Onboarding.swift */; };
+		AA000000000000000000005E /* ProductShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000005D /* ProductShell.swift */; };
 		AA0000000000000000000004 /* EngineKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000014 /* EngineKit */; };
+		CC0000000000000000000001 /* sherpa-onnx in Frameworks */ = {isa = PBXBuildFile; productRef = CC0000000000000000000002 /* sherpa-onnx */; };
+		DD0000000000000000000001 /* VoicePOC.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0000000000000000000002 /* VoicePOC.swift */; };
+		EE0000000000000000000001 /* VoicePOCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0000000000000000000002 /* VoicePOCView.swift */; };
+		FF0000000000000000000001 /* VoiceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0000000000000000000002 /* VoiceService.swift */; };
 		AA0000000000000000000005 /* Models in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000D /* Models */; };
 /* End PBXBuildFile section */
 
@@ -19,6 +30,16 @@
 		AA000000000000000000000A /* EngineShellApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineShellApp.swift; sourceTree = "<group>"; };
 		AA000000000000000000000B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AA000000000000000000000C /* AppLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLog.swift; sourceTree = "<group>"; };
+		AA0000000000000000000053 /* DemoChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoChatView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000054 /* CalendarTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTool.swift; sourceTree = "<group>"; };
+		AA0000000000000000000056 /* ReminderTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTool.swift; sourceTree = "<group>"; };
+		AA0000000000000000000058 /* DemoHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoHarness.swift; sourceTree = "<group>"; };
+		AA000000000000000000005A /* TimeHints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeHints.swift; sourceTree = "<group>"; };
+		AA000000000000000000005C /* Onboarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Onboarding.swift; sourceTree = "<group>"; };
+		AA000000000000000000005D /* ProductShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductShell.swift; sourceTree = "<group>"; };
+		DD0000000000000000000002 /* VoicePOC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePOC.swift; sourceTree = "<group>"; };
+		EE0000000000000000000002 /* VoicePOCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePOCView.swift; sourceTree = "<group>"; };
+		FF0000000000000000000002 /* VoiceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceService.swift; sourceTree = "<group>"; };
 		AA000000000000000000000D /* Models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Models; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -28,6 +49,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000000000000000000004 /* EngineKit in Frameworks */,
+				CC0000000000000000000001 /* sherpa-onnx in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -49,6 +71,16 @@
 				AA000000000000000000000A /* EngineShellApp.swift */,
 				AA000000000000000000000B /* ContentView.swift */,
 				AA000000000000000000000C /* AppLog.swift */,
+				AA0000000000000000000053 /* DemoChatView.swift */,
+				AA0000000000000000000054 /* CalendarTool.swift */,
+				AA0000000000000000000056 /* ReminderTool.swift */,
+				AA0000000000000000000058 /* DemoHarness.swift */,
+				AA000000000000000000005A /* TimeHints.swift */,
+				AA000000000000000000005C /* Onboarding.swift */,
+				AA000000000000000000005D /* ProductShell.swift */,
+				DD0000000000000000000002 /* VoicePOC.swift */,
+				EE0000000000000000000002 /* VoicePOCView.swift */,
+				FF0000000000000000000002 /* VoiceService.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -79,6 +111,7 @@
 			name = EngineShell;
 			packageProductDependencies = (
 				AA0000000000000000000014 /* EngineKit */,
+				CC0000000000000000000002 /* sherpa-onnx */,
 			);
 			productName = EngineShell;
 			productReference = AA0000000000000000000006 /* EngineShell.app */;
@@ -109,7 +142,8 @@
 			);
 			mainGroup = AA0000000000000000000008;
 			packageReferences = (
-				AA0000000000000000000017 /* XCLocalSwiftPackageReference "../engine" */,
+				AA0000000000000000000017 /* XCLocalSwiftPackageReference "../../engine" */,
+				CC0000000000000000000003 /* XCRemoteSwiftPackageReference "sherpa-onnx" */,
 			);
 			productRefGroup = AA000000000000000000000E /* Products */;
 			projectDirPath = "";
@@ -139,6 +173,16 @@
 				AA0000000000000000000001 /* EngineShellApp.swift in Sources */,
 				AA0000000000000000000002 /* ContentView.swift in Sources */,
 				AA0000000000000000000003 /* AppLog.swift in Sources */,
+				AA0000000000000000000051 /* DemoChatView.swift in Sources */,
+				AA0000000000000000000052 /* CalendarTool.swift in Sources */,
+				AA0000000000000000000055 /* ReminderTool.swift in Sources */,
+				AA0000000000000000000057 /* DemoHarness.swift in Sources */,
+				AA0000000000000000000059 /* TimeHints.swift in Sources */,
+				AA000000000000000000005B /* Onboarding.swift in Sources */,
+				AA000000000000000000005E /* ProductShell.swift in Sources */,
+				DD0000000000000000000001 /* VoicePOC.swift in Sources */,
+				EE0000000000000000000001 /* VoicePOCView.swift in Sources */,
+				FF0000000000000000000001 /* VoiceService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,7 +244,12 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MKPQF9BJQ6;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Agent 实验室";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "写入日历事件需要你的授权（本地工具调用演示）";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "语音输入只在本机识别，音频不会上传。";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "写入提醒事项需要你的授权（本地工具调用演示）";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -210,7 +259,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.enginekit.ios-shell;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.enginekit.ios-shell";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -223,7 +272,12 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MKPQF9BJQ6;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Agent 实验室";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "写入日历事件需要你的授权（本地工具调用演示）";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "语音输入只在本机识别，音频不会上传。";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "写入提醒事项需要你的授权（本地工具调用演示）";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -233,7 +287,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.enginekit.ios-shell;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.enginekit.ios-shell";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -271,10 +325,26 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		CC0000000000000000000003 /* XCRemoteSwiftPackageReference "sherpa-onnx" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/k2-fsa/sherpa-onnx";
+			requirement = {
+				kind = exactVersion;
+				version = 2.0.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		AA0000000000000000000014 /* EngineKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = EngineKit;
+		};
+		CC0000000000000000000002 /* sherpa-onnx */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CC0000000000000000000003 /* XCRemoteSwiftPackageReference "sherpa-onnx" */;
+			productName = "sherpa-onnx";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
