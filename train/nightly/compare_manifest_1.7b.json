@@ -1,0 +1,14 @@
+{
+  "corpora": {
+    "target": "/Users/fanyifan/Documents/Qoder/2026-10-23/90ee63b2/train/nightly/work/eval_corpus_sft17.txt",
+    "general": "/Users/fanyifan/Documents/Qoder/2026-10-23/90ee63b2/train/nightly/work/eval_general_corpus.txt"
+  },
+  "models": [
+    {"tag": "orig-Q8_0", "gguf": "/Users/fanyifan/Documents/Qoder/2026-10-23/90ee63b2/models/Qwen3-1.7B-Q8_0.gguf", "group": "orig", "quant": "Q8_0"},
+    {"tag": "orig-Q4_K_M", "gguf": "/Users/fanyifan/Documents/Qoder/2026-10-23/90ee63b2/models/Qwen3-1.7B-Q4_K_M.gguf", "group": "orig", "quant": "Q4_K_M"},
+    {"tag": "sft17-Q8_0", "gguf": "/Users/fanyifan/Documents/Qoder/2026-10-23/90ee63b2/train/gguf/qwen3-1.7b-sft17-20261101/qwen3-1.7b-sft17-Q8_0.gguf", "group": "sft17", "quant": "Q8_0"},
+    {"tag": "sft17-Q5_K_M", "gguf": "/Users/fanyifan/Documents/Qoder/2026-10-23/90ee63b2/train/gguf/qwen3-1.7b-sft17-20261101/qwen3-1.7b-sft17-Q5_K_M.gguf", "group": "sft17", "quant": "Q5_K_M"},
+    {"tag": "sft17-Q4_K_M", "gguf": "/Users/fanyifan/Documents/Qoder/2026-10-23/90ee63b2/train/gguf/qwen3-1.7b-sft17-20261101/qwen3-1.7b-sft17-Q4_K_M.gguf", "group": "sft17", "quant": "Q4_K_M"},
+    {"tag": "sft17-Q4_K_M_emb8", "gguf": "/Users/fanyifan/Documents/Qoder/2026-10-23/90ee63b2/train/gguf/qwen3-1.7b-sft17-20261101/qwen3-1.7b-sft17-Q4_K_M_emb8.gguf", "group": "sft17", "quant": "Q4_K_M_emb8"}
+  ]
+}
