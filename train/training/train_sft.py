@@ -18,6 +18,7 @@ from torch.utils.data import Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments, set_seed
 
 from chunked_ce import ChunkedCETrainer
+import lora
 
 
 class SFTDataset(Dataset):
@@ -111,6 +112,11 @@ def main():
     ap.add_argument("--no-think", action="store_true", help="模板 enable_thinking=false 空思考块注入（SFT3 起）")
     ap.add_argument("--val", default=None, help="验证集 jsonl（assemble 分层抽出的 val.jsonl），不填则跳过 eval")
     ap.add_argument("--eval-steps", type=int, default=500, help="验证集 loss 评估间隔（与 save-steps 对齐）")
+    # 磁盘只剩十几 G 的轮次用：checkpoint 只留权重，放弃断点续训的优化器状态（回滚点仍是 final）
+    ap.add_argument("--save-only-model", action="store_true")
+    ap.add_argument("--lora-r", type=int, default=0, help=">0 启用 LoRA（否则全参训练）")
+    ap.add_argument("--lora-alpha", type=int, default=32)
+    ap.add_argument("--lora-dropout", type=float, default=0.05)
     ap.add_argument("--seed", type=int, default=20261024)
     args = ap.parse_args()
 
@@ -129,8 +135,13 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(
         args.model, dtype=torch.bfloat16, attn_implementation="sdpa",
     )
+    if args.lora_r > 0:
+        replaced = lora.apply_lora(model, args.lora_r, args.lora_alpha, args.lora_dropout)
+        print(f"LORA_APPLIED layers={replaced} trainable={lora.trainable_params(model)}", flush=True)
     if not args.no_grad_checkpoint:
         model.gradient_checkpointing_enable()
+        if args.lora_r > 0:
+            lora.enable_input_require_grads(model)
     # 双卡并发下只允许 rank 0 清目录，避免竞争删除；ignore_errors 兜底残留
     if args.overwrite and os.path.exists(args.out) and int(os.environ.get("LOCAL_RANK", "0")) == 0:
         shutil.rmtree(args.out, ignore_errors=True)
@@ -155,6 +166,7 @@ def main():
         save_strategy="steps",
         save_steps=args.save_steps,
         save_total_limit=3,
+        save_only_model=args.save_only_model,
         deepspeed=args.deepspeed,
         report_to=["mlflow"],
         ddp_find_unused_parameters=False,
@@ -167,6 +179,11 @@ def main():
     trainer = trainer_cls(model=model, args=ta, train_dataset=ds, eval_dataset=val_ds,
                           processing_class=tok, data_collator=make_collator(tok), **kwargs)
     trainer.train()
+    if args.lora_r > 0:
+        trainer.model = lora.merge_lora(trainer.model)
+        lora.save_config(os.path.join(args.out, "lora_config.json"),
+                         args.lora_r, args.lora_alpha, args.lora_dropout)
+        print("LORA_MERGED", flush=True)
     trainer.save_model(os.path.join(args.out, "final"))
     tok.save_pretrained(os.path.join(args.out, "final"))
     print("TRAINING_FINISHED")
