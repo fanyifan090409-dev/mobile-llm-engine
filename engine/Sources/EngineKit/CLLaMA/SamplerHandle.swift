@@ -9,11 +9,13 @@ internal final class SamplerHandle {
         self.sampler = sampler
     }
 
-    static func chain(temperature: Float, topP: Float = 0.9, seed: UInt32 = 42) throws -> SamplerHandle {
+    static func chain(nVocab: Int32, temperature: Float, topP: Float = 0.9, seed: UInt32 = 42) throws -> SamplerHandle {
         let sparams = llama_sampler_chain_default_params()
         guard let chain = llama_sampler_chain_init(sparams) else {
             throw CLLaMAError.samplerInitFailed
         }
+        // 重复惩罚必须排在温度/核采样之前（先压 logits 再约束），否则退化成复读机时采样不出 EOS
+        llama_sampler_chain_add(chain, llama_sampler_init_penalties(nVocab, 64, 1.1, 0, 0))
         llama_sampler_chain_add(chain, llama_sampler_init_temp(temperature))
         llama_sampler_chain_add(chain, llama_sampler_init_top_p(topP, 1))
         llama_sampler_chain_add(chain, llama_sampler_init_dist(seed))

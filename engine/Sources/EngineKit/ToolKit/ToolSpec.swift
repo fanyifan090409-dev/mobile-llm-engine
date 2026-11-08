@@ -22,6 +22,14 @@ public struct ToolParameterSpec: Codable, Sendable {
     }
 }
 
+/// 工具结果回填给模型的 JSON 形状：
+/// - eventID：SFT3 单模型工具的 `{"status":"ok","event_id":"…"}`（历史契约，默认）
+/// - result：SFT20 领队的 `{"status":"ok"|"error","result":"…"}`（dispatch_to_worker 用）
+public enum ToolFeedbackStyle: String, Codable, Sendable {
+    case eventID
+    case result
+}
+
 public struct ToolSpec: Codable, Sendable {
     public let name: String
     public let description: String
@@ -30,12 +38,15 @@ public struct ToolSpec: Codable, Sendable {
     /// 必须与 SFT3 训练数据前插的 system 文本逐字一致（SYNTH_SYS_SCHED1），
     /// 否则训练/推理分布偏移（tech-debt #2 根因）；nil = 不注入（纯文本模型可用）
     public let usagePrompt: String?
+    public let feedbackStyle: ToolFeedbackStyle
 
-    public init(name: String, description: String, parameters: [ToolParameterSpec], usagePrompt: String? = nil) {
+    public init(name: String, description: String, parameters: [ToolParameterSpec],
+                usagePrompt: String? = nil, feedbackStyle: ToolFeedbackStyle = .eventID) {
         self.name = name
         self.description = description
         self.parameters = parameters
         self.usagePrompt = usagePrompt
+        self.feedbackStyle = feedbackStyle
     }
 
     /// 参数名 → 规格索引（校验与清单生成共用）

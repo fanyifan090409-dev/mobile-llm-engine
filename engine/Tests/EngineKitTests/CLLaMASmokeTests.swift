@@ -24,7 +24,7 @@ struct CLLaMASmokeTests {
         let model = try ModelHandle.load(fileURL: URL(fileURLWithPath: path), nGPU: -1)
         let ctx = try model.makeContext(context: 512, batch: 512, threads: 2, threadsBatch: 2)
         // 温度 0 = 贪心采样：同模型同机器结果确定，可做强断言
-        let sampler = try SamplerHandle.chain(temperature: 0, seed: 42)
+        let sampler = try SamplerHandle.chain(nVocab: ctx.nVocab, temperature: 0, seed: 42)
 
         let prompt = try model.tokenize("你好")
         #expect(!prompt.isEmpty, "tokenize 结果不应为空")

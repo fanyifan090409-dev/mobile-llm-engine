@@ -131,7 +131,11 @@ public final class EngineCore: LocalEngine {
         toolMode: Bool
     ) {
         do {
-            let sampler = try SamplerHandle.chain(temperature: Float(req.temperature), seed: UInt32.random(in: 0...UInt32.max))
+            // 每轮 generate 都是独立请求：先清空 KV。
+            // 不清理的后果（真机实测）：旧输出残留在上下文里污染后续生成——先是答非所问/模板漏出，
+            // 再退化成重复循环跑满 maxTokens，最终 KV 撑满报 "failed to find a memory slot"
+            ctx.clearMemory()
+            let sampler = try SamplerHandle.chain(nVocab: ctx.nVocab, temperature: Float(req.temperature), seed: UInt32.random(in: 0...UInt32.max))
 
             // 预填充：整段 prompt 一次 decode，计时算 pp_ts
             let ppStart = DispatchTime.now()
@@ -291,6 +295,7 @@ public enum EngineError: Error, CustomStringConvertible {
     public var description: String {
         switch self {
         case .notLoaded: return "模型未加载：先调用 load(_:) 再 generate"
+            
         }
     }
 }

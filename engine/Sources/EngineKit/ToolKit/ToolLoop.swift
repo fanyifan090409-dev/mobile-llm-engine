@@ -48,7 +48,9 @@ public enum ToolLoop {
             let event = ToolCallEvent(
                 toolName: parsed.name, arguments: [:], status: .rejected,
                 resultText: "工具 \(parsed.name) 不在白名单")
-            return .feedback(content: Self.errorJSON("没有名为 \(parsed.name) 的工具，无法执行"), event: event)
+            // 幻觉工具名：无对应 spec，按当前白名单风格回填（派单模式用 result）
+            let style: ToolFeedbackStyle = tools.contains { $0.spec.feedbackStyle == .result } ? .result : .eventID
+            return .feedback(content: Self.errorJSON("没有名为 \(parsed.name) 的工具，无法执行", style: style), event: event)
         }
 
         // schema 校验（必填/类型/正则）
@@ -60,7 +62,7 @@ public enum ToolLoop {
             let event = ToolCallEvent(
                 toolName: parsed.name, arguments: [:], status: .rejected,
                 resultText: err.description)
-            return .feedback(content: Self.errorJSON(err.description), event: event)
+            return .feedback(content: Self.errorJSON(err.description, style: tool.spec.feedbackStyle), event: event)
         }
 
         do {
@@ -72,34 +74,40 @@ public enum ToolLoop {
                 let event = ToolCallEvent(
                     toolName: parsed.name, arguments: validated, status: .executed,
                     resultText: result.content)
-                return .feedback(content: Self.okJSON(result.content), event: event)
+                return .feedback(content: Self.okJSON(result.content, style: tool.spec.feedbackStyle), event: event)
             } else {
                 let event = ToolCallEvent(
                     toolName: parsed.name, arguments: validated, status: .failed,
                     resultText: result.content)
-                return .feedback(content: Self.errorJSON(result.content), event: event)
+                return .feedback(content: Self.errorJSON(result.content, style: tool.spec.feedbackStyle), event: event)
             }
         } catch ToolLoopError.timeout {
             let event = ToolCallEvent(
                 toolName: parsed.name, arguments: validated, status: .failed,
                 resultText: "工具执行超时")
-            return .feedback(content: Self.errorJSON("工具执行超时，请稍后重试"), event: event)
+            return .feedback(content: Self.errorJSON("工具执行超时，请稍后重试", style: tool.spec.feedbackStyle), event: event)
         } catch {
             let event = ToolCallEvent(
                 toolName: parsed.name, arguments: validated, status: .failed,
                 resultText: "\(error)")
-            return .feedback(content: Self.errorJSON("工具执行失败：\(error)"), event: event)
+            return .feedback(content: Self.errorJSON("工具执行失败：\(error)", style: tool.spec.feedbackStyle), event: event)
         }
     }
 
-    /// 成功回填：{"status": "ok", "event_id": "..."}（训练轨迹同款形状）
-    private static func okJSON(_ eventID: String) -> String {
-        jsonString(["status": "ok", "event_id": eventID])
+    /// 成功回填：eventID → {"status":"ok","event_id":"…"}；result → {"status":"ok","result":"…"}
+    private static func okJSON(_ content: String, style: ToolFeedbackStyle) -> String {
+        switch style {
+        case .eventID: return jsonString(["status": "ok", "event_id": content])
+        case .result:  return jsonString(["status": "ok", "result": content])
+        }
     }
 
-    /// 失败回填：{"status": "error", "message": "..."}（校验失败/超时/抛错共用）
-    private static func errorJSON(_ message: String) -> String {
-        jsonString(["status": "error", "message": message])
+    /// 失败回填：eventID → {"status":"error","message":"…"}；result → {"status":"error","result":"…"}
+    private static func errorJSON(_ message: String, style: ToolFeedbackStyle) -> String {
+        switch style {
+        case .eventID: return jsonString(["status": "error", "message": message])
+        case .result:  return jsonString(["status": "error", "result": message])
+        }
     }
 
     private static func jsonString(_ dict: [String: String]) -> String {
