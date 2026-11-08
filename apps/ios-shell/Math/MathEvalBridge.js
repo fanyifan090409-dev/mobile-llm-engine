@@ -43,6 +43,10 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
          .replace(/\b(arctan|arcsin|arccos)\b/g,
                   (m) => ({ arctan: 'atan', arcsin: 'asin', arccos: 'acos' }[m]));
     s = s.replace(/\\(sin|cos|tan|exp|log|sqrt|abs|pi|theta|phi)/g, '$1');
+    // sin^2 x / \sin^2{x}：函数名后跟幂，补成 sin(x)^2（否则 math.js 把 sin 当变量）
+    s = s.replace(/\b(sin|cos|tan|log|exp|sqrt|abs|asin|acos|atan)\s*\^\s*(\d+)\s*\(([^()]*)\)/g, '$1($3)^$2');
+    s = s.replace(/\b(sin|cos|tan|log|exp|sqrt|abs|asin|acos|atan)\s*\^\s*(\d+)\s*\{([^{}]*)\}/g, '$1($3)^$2');
+    s = s.replace(/\b(sin|cos|tan|log|exp|sqrt|abs|asin|acos|atan)\s*\^\s*(\d+)\s+([A-Za-z0-9_.^]+)/g, '$1($3)^$2');
     // sin x / arctan x 这类省括号写法补成 sin(x)
     s = s.replace(/\b(atan|asin|acos|sin|cos|tan|log|sqrt|exp|abs)\s+([A-Za-z0-9_.^]+)/g, '$1($2)');
     s = s.replace(/\{/g, '(').replace(/\}/g, ')');
@@ -138,7 +142,9 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
         break;
       }
       case 'simplify': {
-        const s = math.simplify(rename(sanitize(expr)));
+        // math.js 自身不化简 sin²+cos²，用自定义规则补一条基本恒等式
+        const s = math.simplify(rename(sanitize(expr)),
+          ['sin(n1)^2 + cos(n1)^2 -> 1', 'cos(n1)^2 + sin(n1)^2 -> 1']);
         result = restore(fmtNode(s));
         try { latex = fixTex(restore(s.toTex())); } catch (e) {}
         break;

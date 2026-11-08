@@ -137,3 +137,39 @@ iOS 入口（2026-11-08 补）：
 - 二期 1,000 条 `math_eval` 工具调用 SFT 与 69 题端到端验收；
 - iOS 计算页的真机点按走查（设备目标已编译通过，资源加载已实测）；
 - `apps/ios-shell/Math/` 与 `apps/demo-cli/.../Resources/` 是两份 math.js 副本，升级 math.js 时必须同步。
+
+## 八、二期实现状态（2026-11-09）
+
+数据（`train/synthesize/gen_math_eval_sft.py` + `gen_math_eval_multistep.py`）：
+
+- 单步 1,853 题 / 3,706 行：eval 448（应用题、反函数、复合、余数、级数、距离、行列式、复数模）、derivative 334（含反三角）、
+  stats 360（normalcdf / 二项式系数 / 二项方差）、area 85、integrate 180、solve 150、simplify 100、word 196；
+- 多步 190 条轨迹 / 570 行：驻点、切线、二阶导、区间平均值、复合函数；
+- 生成器 `add()` 对 69 题原题做全局拦截，二次核对污染 0；
+- 提示词三处逐字同步：`MathEvalTool.swift` / `gen_math_eval_sft.py` / `eval_math_e2e.py`（v7a）。
+
+训练（LoRA r16；v1-v3 从 SFT19 final 起 3 epochs，v4 从 v3 final 续训 2 epochs）：
+
+| 版本 | 数据 | 69 题端到端 | 备注 |
+|---|---|---|---|
+| SFT27 | v1 1,069 题 | 47/69（68.1%） | emit 66/69 |
+| SFT27b | v2 1,448 题 | 48/69（69.6%） | emit 69/69 |
+| SFT27c | v3 1,745 题 | 54/69（78.3%） | ap_stats 19/19 |
+| SFT27d | v4 1,853 题 | 初评 53/69；补 CAS + 提示词后 **58/69（84.1%）** | 采用 |
+
+评测口径：Q5_K_M、temp 0、模型自行调 `math_eval`、真实 CAS 回填、最多 3 轮。
+
+- **58/69（84.1%）**：ap_calc 18/25、precalc 21/25、ap_stats 19/19；emit **69/69（100%）**，满足 ≥80% / ≥90%；
+- 剩余 11 题：不定积分、换元积分、极限×2、参数方程、二阶导（模型只调一次）、面积上下顺序、复合函数、等比数列、
+  线性方程组、圆；其中 7 题超 CAS 单次能力，4 题属模型列式/多步问题；
+- 40/40 工具与 58/60 日期属既有 0.6B 工人模型验收，本次未改工人模型；CAS 模型独立存放，不替换模型池。
+  SFT27d Q5/Q4 在训练机 `tools/llama_convert/sft27d_cas_gguf/`。
+
+本期关键修复：
+
+- LaTeX 反三角与省括号函数归一（`\arctan x`、`3\arctan x`、`sin x`），修掉 arctan 被当函数对象返回；
+- `sin^2 x` 解析为 `sin(x)^2`；`simplify` 加自定义规则 `sin²+cos²→1`（math.js 默认不认）；
+- 提示词补面积/平均值/行列式/反函数/余数/级数/距离/复数模口径，并要求答案与工具结果一致；
+- `eval_math_e2e.py` 加 `--ids` 子集模式，支持逐题迭代。
+
+未做：nerdamer 符号积分/因式分解/极限；iOS 计算页真机点按；两份 math.js 副本升级时的 sha256 校验。

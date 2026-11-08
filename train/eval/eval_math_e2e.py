@@ -36,6 +36,7 @@ SYSTEM = (
     "两点距离 = sqrt((x2-x1)^2+(y2-y1)^2)；1+2+...+n = n(n+1)/2；"
     "反函数值先求反函数再代入（开方取定义域内的根）；f(g(a)) 先算 g(a) 再代入 f；"
     "多项式除以 x-a 的余数 = P(a)；等比数列首项到 a*r^k 共 k+1 项，和 = a*(r^(k+1)-1)/(r-1)。"
+    "因式分解用 simplify；复数模 = sqrt(a^2+b^2)。"
     "收到工具结果后，如果还需要下一步计算就继续调用工具；否则用中文简要讲解，并在最后一行写【答案】，答案必须与工具结果一致。"
 )
 TC_RE = re.compile(r"<tool_call>\s*(\{.*?\})\s*</tool_call>", re.S)
@@ -102,9 +103,13 @@ def main():
     ap.add_argument("--outdir", required=True)
     ap.add_argument("--max-tokens", type=int, default=768)
     ap.add_argument("--max-rounds", type=int, default=3)
+    ap.add_argument("--ids", default="")
     args = ap.parse_args()
     os.makedirs(args.outdir, exist_ok=True)
     cases = json.load(open(EVAL_FILE, encoding="utf-8"))
+    if args.ids:
+        wanted = {x.strip() for x in args.ids.split(",") if x.strip()}
+        cases = [c for c in cases if c.get("id") in wanted]
 
     results, emitted = [], 0
     for i, c in enumerate(cases, 1):
