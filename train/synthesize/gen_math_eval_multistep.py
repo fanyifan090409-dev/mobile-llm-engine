@@ -19,7 +19,8 @@ from fractions import Fraction
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from gen_math_eval_sft import (USAGE_PROMPT, poly_str, poly_tex, signed,
-                               integral_poly_value, parse_cas_number, close)
+                               integral_poly_value, parse_cas_number, close,
+                               eval_problem_set, linear_tex)
 
 ROOT = os.path.dirname(os.path.dirname(HERE))
 OUTDIR = os.path.join(ROOT, "train", "synthesize", "out_math_eval_sft")
@@ -66,9 +67,10 @@ def run_cas(requests):
 def gen_cases():
     cases = []
     seen = set()
+    blocked = eval_problem_set()
 
     def push(kind, problem, steps, expected, final):
-        if problem in seen:
+        if problem in seen or problem in blocked:
             return
         seen.add(problem)
         cid = f"multi-{len(cases) + 1:03d}"
@@ -131,7 +133,7 @@ def gen_cases():
 
     # 4) 区间平均值 = (1/(b-a)) ∫_a^b f
     n, guard = 0, 0
-    while n < 30 and guard < 3000:
+    while n < 60 and guard < 5000:
         guard += 1
         deg = random.choice([1, 2])
         f = [(random.randint(-3, 3), p) for p in range(deg, -1, -1)]
@@ -146,6 +148,30 @@ def gen_cases():
              [{"op": "integrate_def", "expr": poly_str(f), "lower": str(a), "upper": str(b)}],
              {"kind": "num", "value": float(avg), "b_minus_a": b - a},
              lambda res: f"平均值 = 定积分 ÷ 区间长度 = {res[-1]['result']}。\n【答案】{res[-1]['result']}")
+        n += len(cases) - before
+
+    # 5) 复合函数：先算内层值，再把结果代入外层
+    n, guard = 0, 0
+    while n < 30 and guard < 4000:
+        guard += 1
+        a = random.randint(1, 4)
+        b, c = random.choice([2, 3, 4]), random.randint(-5, 5)
+        t = random.randint(-3, 4)
+        outer_f = guard % 2 == 0
+        if outer_f:
+            problem = f"设 $f(x)=x^2+{a}$，$g(x)={linear_tex(b, c)}$，求 $f(g({t}))$ 的值。"
+            step1_expr = f"{b}*({t})+{c}"
+            value = (b * t + c) ** 2 + a
+        else:
+            problem = f"设 $f(x)=x^2+{a}$，$g(x)={linear_tex(b, c)}$，求 $g(f({t}))$ 的值。"
+            step1_expr = f"({t})^2+{a}"
+            value = b * (t * t + a) + c
+        before = len(cases)
+        push("compose", problem,
+             [{"op": "eval", "expr": step1_expr}],
+             {"kind": "num", "value": float(value), "outer_f": outer_f,
+              "a": a, "b": b, "c": c},
+             lambda res: f"先算内层得到 {res[0]['result']}，再代入外层，结果为 {res[1]['result']}。\n【答案】{res[1]['result']}")
         n += len(cases) - before
 
     return cases
@@ -166,6 +192,13 @@ def add_step2(cases, step1_results):
                                "expected_expr": c["expected"]["expected_expr"]})
         elif c["kind"] == "average":
             c["steps"].append({"op": "eval", "expr": f"({first})/({c['expected']['b_minus_a']})"})
+        elif c["kind"] == "compose":
+            if c["expected"]["outer_f"]:
+                c["steps"].append({"op": "eval",
+                                   "expr": f"({first})^2+{c['expected']['a']}"})
+            else:
+                c["steps"].append({"op": "eval",
+                                   "expr": f"{c['expected']['b']}*({first})+{c['expected']['c']}"})
 
 
 def verify(cases, step1_results, step2_results):
@@ -187,6 +220,8 @@ def verify(cases, step1_results, step2_results):
             elif c["kind"] == "second":
                 good = bool(r2.get("match"))
             elif c["kind"] == "average":
+                good = close(parse_cas_number(r2["result"]), c["expected"]["value"], 1e-6)
+            elif c["kind"] == "compose":
                 good = close(parse_cas_number(r2["result"]), c["expected"]["value"], 1e-6)
         except Exception:
             good = False

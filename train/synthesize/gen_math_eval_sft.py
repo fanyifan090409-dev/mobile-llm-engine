@@ -29,7 +29,12 @@ USAGE_PROMPT = (
     'solve 可写 "x^2-5x+6=0"；积分与解方程用 lower/upper 给区间（可写 pi/2）；'
     "stats 用 stat_op 与 data：mean/median/variance/std/variance_pop/std_pop/iqr/sum/min/max/combination/permutation/binomial/regression/normalcdf，"
     'data 逗号分隔，regression 用 "x1,y1;x2,y2"，normalcdf 用 "mu,sigma,x"。'
-    "收到工具结果后，如果还需要下一步计算就继续调用工具；否则用中文简要讲解，并在最后一行写【答案】。"
+    "解题约定：面积先判断哪条曲线在上方，再用上曲线减下曲线积分；平均值 = 定积分 ÷ 区间长度；"
+    "二阶行列式 = ad - bc；\\binom{n}{k} 用 stats combination；正态概率用 stats normalcdf；二项分布 Var(X)=n p (1-p)；"
+    "两点距离 = sqrt((x2-x1)^2+(y2-y1)^2)；1+2+...+n = n(n+1)/2；"
+    "反函数值先求反函数再代入（开方取定义域内的根）；f(g(a)) 先算 g(a) 再代入 f；"
+    "多项式除以 x-a 的余数 = P(a)；等比数列首项到 a*r^k 共 k+1 项，和 = a*(r^(k+1)-1)/(r-1)。"
+    "收到工具结果后，如果还需要下一步计算就继续调用工具；否则用中文简要讲解，并在最后一行写【答案】，答案必须与工具结果一致。"
 )
 
 TARGETS = {"eval": 150, "derivative": 250, "simplify": 100,
@@ -56,6 +61,11 @@ def linear_str(a, b, var="x"):
     if b == 0:
         return body
     return f"{body} + {b}" if b > 0 else f"{body} - {abs(b)}"
+
+
+def linear_tex(a, b):
+    body = "x" if a == 1 else ("-x" if a == -1 else f"{a}x")
+    return body if b == 0 else f"{body}{signed(b)}"
 
 
 def poly_str(terms):
@@ -126,6 +136,9 @@ def explain(category, result, case):
 
 
 def add(cases, category, problem, args, check, stat_label=None):
+    # 全局兜底：任何生成器都不允许把 69 题评测原题写进训练数据
+    if problem in eval_problem_set():
+        return False
     key = json.dumps([problem, args], ensure_ascii=False, sort_keys=True)
     if key in CASE_KEYS:
         return False
@@ -761,6 +774,245 @@ def gen_stats(cases):
                 {"kind": "pick", "field": field, "value": value, "tol": 1e-5}, stat_label=label)
 
 
+def gen_v3_targeted(cases):
+    """v3 定向补数据：对应 v2 e2e 的失败题型（反函数/合成/余数/级数/行列式/
+    二项式系数/正态概率/二项方差/反三角导数/面积），题面随机生成，不复制 69 题原题。"""
+    blocked = eval_problem_set()
+
+    # 反函数值：线性先解 y，再代值；二次反函数限定 x≥0 取正根
+    made, guard = 0, 0
+    while made < 25 and guard < 3000:
+        guard += 1
+        if guard % 2 == 0:
+            a, b = random.choice([2, 3, 4, 5]), random.randint(-6, 6)
+            c = a * random.randint(1, 8) + b
+            problem = f"设 $f(x)={linear_tex(a, b)}$，求 $f^{{-1}}({c})$ 的值。"
+            expr, value = f"({c}-{b})/{a}", (c - b) / a
+        else:
+            b = random.randint(1, 6)
+            c = b + random.choice([1, 4, 9, 16, 25, 36])
+            problem = f"设 $f(x)=x^2+{b}$（$x\\ge 0$），求 $f^{{-1}}({c})$ 的值。"
+            expr, value = f"sqrt({c}-{b})", math.sqrt(c - b)
+        if problem in blocked:
+            continue
+        made += int(add(cases, "eval", problem, {"op": "eval", "expr": expr},
+                        {"kind": "num", "value": value}))
+
+    # 复合函数值：先算内层再代入外层
+    made, guard = 0, 0
+    while made < 25 and guard < 3000:
+        guard += 1
+        a = random.randint(1, 4)
+        b, c = random.choice([2, 3, 4]), random.randint(-5, 5)
+        t = random.randint(-3, 4)
+        if guard % 2 == 0:
+            problem = f"设 $f(x)=x^2+{a}$，$g(x)={linear_tex(b, c)}$，求 $f(g({t}))$ 的值。"
+            expr, value = f"({b}*({t})+{c})^2+{a}", (b * t + c) ** 2 + a
+        else:
+            problem = f"设 $f(x)=x^2+{a}$，$g(x)={linear_tex(b, c)}$，求 $g(f({t}))$ 的值。"
+            expr, value = f"{b}*(({t})^2+{a})+{c}", b * (t * t + a) + c
+        if problem in blocked:
+            continue
+        made += int(add(cases, "eval", problem, {"op": "eval", "expr": expr},
+                        {"kind": "num", "value": float(value)}))
+
+    # 余数定理加量：P(x) 除以 x-a 的余数 = P(a)
+    made, guard = 0, 0
+    while made < 40 and guard < 5000:
+        guard += 1
+        a = random.randint(-5, 5)
+        deg = random.randint(2, 4)
+        terms = [(random.choice([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), p)
+                 for p in range(deg, -1, -1)]
+        problem = f"求多项式 ${poly_tex(terms)}$ 除以 $x{signed(-a)}$ 的余数。"
+        if problem in blocked:
+            continue
+        value = sum(co * (a ** p) for co, p in terms)
+        made += int(add(cases, "eval", problem,
+                        {"op": "eval", "expr": poly_str(terms).replace("x", f"({a})")},
+                        {"kind": "num", "value": float(value)}))
+
+    # 等比数列求和：首项到 a*r^k 共 k+1 项，和 = a*(r^(k+1)-1)/(r-1)
+    made, guard = 0, 0
+    while made < 40 and guard < 4000:
+        guard += 1
+        r, a = random.choice([2, 3]), random.choice([1, 2, 3])
+        k_last = random.randint(5, 12)
+        terms = "+".join(str(a * r ** i) for i in range(3)) + f"+\\cdots+{a * r ** k_last}"
+        problem = f"求 ${terms}$ {'的和' if guard % 2 else '的值'}。"
+        if problem in blocked:
+            continue
+        value = a * (r ** (k_last + 1) - 1) // (r - 1)
+        made += int(add(cases, "eval", problem,
+                        {"op": "eval", "expr": f"{a}*({r}^{k_last + 1}-1)/({r}-1)"},
+                        {"kind": "num", "value": float(value)}))
+
+    # 二阶行列式
+    made, guard = 0, 0
+    while made < 25 and guard < 4000:
+        guard += 1
+        a, b, c, d = (random.randint(-6, 9) for _ in range(4))
+        if a * d == b * c:
+            continue
+        problem = f"求行列式 $\\begin{{vmatrix}}{a}&{b}\\\\{c}&{d}\\end{{vmatrix}}$ 的值。"
+        if problem in blocked:
+            continue
+        made += int(add(cases, "eval", problem,
+                        {"op": "eval", "expr": f"{a}*{d}-{b}*{c}"},
+                        {"kind": "num", "value": float(a * d - b * c)}))
+
+    # 二项式系数 LaTeX：\binom{n}{k} 走 stats combination
+    made, guard = 0, 0
+    while made < 30 and guard < 3000:
+        guard += 1
+        n = random.randint(6, 20)
+        k = random.randint(2, min(6, n - 1))
+        problem = f"求 $\\binom{{{n}}}{{{k}}}$ 的值。"
+        if problem in blocked:
+            continue
+        made += int(add(cases, "stats", problem,
+                        {"op": "stats", "stat_op": "combination", "data": f"{n},{k}"},
+                        {"kind": "num", "value": float(math.comb(n, k))}, stat_label="组合数"))
+
+    # 正态概率（LaTeX 题面，贴近试卷写法）
+    made, guard = 0, 0
+    while made < 40 and guard < 4000:
+        guard += 1
+        mu = random.choice([45, 50, 55, 60, 65, 70, 75, 80, 85, 90])
+        sigma = random.choice([4, 5, 8, 10, 12, 15])
+        x = mu + random.choice([-3, -2, -1, 1, 2, 3]) * random.choice([2, 3, 5])
+        problem = f"设 $X\\sim N({mu},{sigma}^2)$，求 $P(X<{x})$（保留四位小数）。"
+        if problem in blocked:
+            continue
+        value = 0.5 * (1 + math.erf((x - mu) / (sigma * math.sqrt(2))))
+        made += int(add(cases, "stats", problem,
+                        {"op": "stats", "stat_op": "normalcdf", "data": f"{mu},{sigma},{x}"},
+                        {"kind": "num", "value": value, "tol": 1e-6}, stat_label="概率"))
+
+    # 二项分布方差：Var(X) = n p (1-p)
+    made, guard = 0, 0
+    while made < 30 and guard < 3000:
+        guard += 1
+        n = random.randint(8, 30)
+        p = random.choice([0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7])
+        q = round(1 - p, 2)
+        problem = f"设 $X\\sim B({n},{p})$，求 $\\operatorname{{Var}}(X)$。"
+        if problem in blocked:
+            continue
+        made += int(add(cases, "word", problem,
+                        {"op": "eval", "expr": f"{n}*{p}*{q}"},
+                        {"kind": "num", "value": n * p * q}))
+
+    # 反三角导数（避免与 eval 的 arctan x 原题逐字相同，用系数变式）
+    made, guard = 0, 0
+    while made < 30 and guard < 3000:
+        guard += 1
+        a = random.choice([2, 3, 4])
+        kind = guard % 4
+        if kind == 0:
+            problem = f"设 $f(x)=\\arctan({a}x)$，求 $f'(x)$。"
+            expr, expected = f"atan({a}*x)", f"{a}/(1+({a}*x)^2)"
+        elif kind == 1:
+            problem = f"设 $f(x)={a}\\arctan x$，求 $f'(x)$。"
+            expr, expected = f"{a}*atan(x)", f"{a}/(1+x^2)"
+        elif kind == 2:
+            problem = f"设 $f(x)=\\arcsin({a}x)$，求 $f'(x)$。"
+            expr, expected = f"asin({a}*x)", f"{a}/sqrt(1-({a}*x)^2)"
+        else:
+            problem = f"设 $f(x)=\\arccos({a}x)$，求 $f'(x)$。"
+            expr, expected = f"acos({a}*x)", f"-{a}/sqrt(1-({a}*x)^2)"
+        if problem in blocked:
+            continue
+        made += int(add(cases, "derivative", problem,
+                        {"op": "derivative", "expr": expr, "expected_expr": expected},
+                        {"kind": "match"}))
+
+    # 面积加量：上曲线减下曲线
+    made, guard = 0, 0
+    while made < 30 and guard < 4000:
+        guard += 1
+        a, b = random.choice([(0, 1), (0, 2), (1, 2), (1, 3), (-1, 1)])
+        k = random.choice([1, 2, 3, 4])
+        m, c0 = random.randint(-3, 3), random.randint(-4, 4)
+        g_terms = [(m, 1), (c0, 0)]
+        h_terms = [(-k, 2), (k * (a + b), 1), (-k * a * b, 0)]
+        f_terms = [(h_terms[0][0], 2), (h_terms[1][0] + m, 1), (h_terms[2][0] + c0, 0)]
+        problem = (f"求曲线 $y={poly_tex(f_terms)}$ 与 $y={poly_tex(g_terms)}$ "
+                   f"在 $[{a},{b}]$ 上围成的面积。")
+        if problem in blocked:
+            continue
+        value = Fraction(k * (b - a) ** 3, 6)
+        made += int(add(cases, "area", problem,
+                        {"op": "integrate_def", "expr": poly_str(h_terms),
+                         "lower": str(a), "upper": str(b)},
+                        {"kind": "num", "value": float(value), "tol": 1e-6}))
+
+
+def gen_v4_targeted(cases):
+    """v4：两点距离、等差数列、等比数列加量、题面先给下方曲线的面积题。"""
+    blocked = eval_problem_set()
+
+    # 两点距离公式
+    made, guard = 0, 0
+    while made < 30 and guard < 3000:
+        guard += 1
+        x1, y1 = random.randint(-5, 5), random.randint(-5, 5)
+        x2, y2 = random.randint(-5, 8), random.randint(-5, 8)
+        if (x1, y1) == (x2, y2):
+            continue
+        problem = f"求点 $({x1},{y1})$ 与 $({x2},{y2})$ 之间的距离。"
+        if problem in blocked:
+            continue
+        made += int(add(cases, "eval", problem,
+                        {"op": "eval", "expr": f"sqrt(({x2}-{x1})^2+({y2}-{y1})^2)"},
+                        {"kind": "num", "value": math.hypot(x2 - x1, y2 - y1)}))
+
+    # 1+2+…+n
+    made, guard = 0, 0
+    while made < 30 and guard < 2000:
+        guard += 1
+        n = random.randint(5, 40)
+        problem = f"求 $1+2+3+\\cdots+{n}$ 的和。"
+        if problem in blocked:
+            continue
+        made += int(add(cases, "eval", problem,
+                        {"op": "eval", "expr": f"{n}*({n}+1)/2"},
+                        {"kind": "num", "value": float(n * (n + 1) // 2)}))
+
+    # 等比数列：首项 a、公比 r，末项 a*r^k，共 k+1 项
+    made, guard = 0, 0
+    while made < 30 and guard < 3000:
+        guard += 1
+        a, r = random.choice([1, 2, 3]), random.choice([2, 3])
+        k = random.randint(6, 12)
+        problem = (f"求 ${a}+{a * r}+{a * r ** 2}+\\cdots+{a * r ** k}$ 的和。")
+        if problem in blocked:
+            continue
+        made += int(add(cases, "eval", problem,
+                        {"op": "eval", "expr": f"{a}*({r}^{k + 1}-1)/({r}-1)"},
+                        {"kind": "num", "value": float(a * (r ** (k + 1) - 1) // (r - 1))}))
+
+    # 面积：题面先给下方曲线（lower 在前），仍要用上曲线减下曲线
+    made, guard = 0, 0
+    while made < 30 and guard < 4000:
+        guard += 1
+        a, b = random.choice([(0, 1), (0, 2), (1, 2), (1, 3), (-1, 1)])
+        k = random.choice([1, 2, 3, 4])
+        m, c0 = random.randint(-3, 3), random.randint(-4, 4)
+        lower = [(m, 1), (c0, 0)]
+        upper = [(-k, 2), (m + k * (a + b), 1), (c0 - k * a * b, 0)]
+        problem = (f"求曲线 $y={poly_tex(lower)}$ 与 $y={poly_tex(upper)}$ "
+                   f"在 $[{a},{b}]$ 上围成的面积。")
+        if problem in blocked:
+            continue
+        h = [(-k, 2), (k * (a + b), 1), (-k * a * b, 0)]
+        value = Fraction(k * (b - a) ** 3, 6)
+        made += int(add(cases, "area", problem,
+                        {"op": "integrate_def", "expr": poly_str(h),
+                         "lower": str(a), "upper": str(b)},
+                        {"kind": "num", "value": float(value), "tol": 1e-6}))
+
+
 def verify(case, result):
     check = case["check"]
     if result.get("status") != "ok":
@@ -830,6 +1082,8 @@ def main():
     gen_binomial(cases)
     gen_precalc_words(cases)
     gen_area(cases)
+    gen_v3_targeted(cases)
+    gen_v4_targeted(cases)
 
     req_path = os.path.join(OUTDIR, "requests.jsonl")
     res_path = os.path.join(OUTDIR, "results.jsonl")
