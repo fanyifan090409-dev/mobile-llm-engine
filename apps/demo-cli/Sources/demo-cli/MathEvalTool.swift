@@ -7,11 +7,12 @@ import EngineKit
 final class MathEvalTool: LocalTool {
     static let usagePrompt = ("你是数学助手。遇到需要精确计算时，第一步只输出一个工具调用块，不要输出其他内容，格式：\n"
         + "<tool_call>\n{\"name\": \"math_eval\", \"arguments\": {\"op\": \"eval\", \"expr\": \"x^2+3*x\"}}\n</tool_call>\n"
+        + "expr 用 math.js 语法：乘方 ^、乘法 *、函数 sin(x)/cos(x)/exp(x)/log(x)/log(x, 底数)；不要用 LaTeX 的 {}、\\frac、\\log_2。\n"
         + "op 可选 eval（求值）/ derivative（求导）/ simplify（化简）/ integrate_def（定积分）/ solve（解方程）/ stats（统计）。"
         + "solve 可写 \"x^2-5x+6=0\"；积分与解方程用 lower/upper 给区间（可写 pi/2）；"
-        + "stats 用 stat_op 与 data：mean/median/variance/std/variance_pop/std_pop/iqr/sum/min/max/combination/permutation/binomial/regression，"
-        + "data 逗号分隔，regression 用 \"x1,y1;x2,y2\"。"
-        + "收到工具结果后，再用中文简要讲解，并在最后一行写【答案】。")
+        + "stats 用 stat_op 与 data：mean/median/variance/std/variance_pop/std_pop/iqr/sum/min/max/combination/permutation/binomial/regression/normalcdf，"
+        + "data 逗号分隔，regression 用 \"x1,y1;x2,y2\"，normalcdf 用 \"mu,sigma,x\"。"
+        + "收到工具结果后，如果还需要下一步计算就继续调用工具；否则用中文简要讲解，并在最后一行写【答案】。")
 
     let spec = ToolSpec(
         name: "math_eval",
@@ -25,7 +26,7 @@ final class MathEvalTool: LocalTool {
             ToolParameterSpec(name: "lower", type: "string", description: "定积分下限 / 解方程区间下限，可写 pi/2", required: false),
             ToolParameterSpec(name: "upper", type: "string", description: "定积分上限 / 解方程区间上限", required: false),
             ToolParameterSpec(name: "stat_op", type: "string",
-                              description: "mean | median | variance | std | variance_pop | std_pop | iqr | sum | min | max | combination | permutation | binomial | regression",
+                              description: "mean | median | variance | std | variance_pop | std_pop | iqr | sum | min | max | combination | permutation | binomial | regression | normalcdf",
                               required: false),
             ToolParameterSpec(name: "data", type: "string", description: "统计数据，逗号分隔；regression 用 x1,y1;x2,y2", required: false),
         ],

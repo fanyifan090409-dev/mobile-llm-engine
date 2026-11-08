@@ -21,9 +21,35 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
   }
   function bound(s, dflt) {
     if (s === null || s === undefined || String(s).length === 0) return dflt;
-    const v = math.evaluate(String(s));
+    const v = math.evaluate(sanitize(String(s)));
     if (typeof v !== 'number' || !isFinite(v)) throw new Error('上下限必须是数值');
     return v;
+  }
+  // 模型/用户常直接粘 LaTeX：\frac、e^{x}、log_2(x)、\{ \} 分组。这里做一层保守归一，
+  // 只处理无歧义的写法；归一后再交给 math.js 自己的解析器（仍然不碰 eval/Function）。
+  function sanitize(input) {
+    let s = String(input == null ? '' : input).trim();
+    s = s.replace(/^\$+|\$+$/g, '').replace(/\\left|\\right/g, '');
+    s = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '(($1)/($2))');
+    s = s.replace(/\\sqrt\s*\{([^{}]*)\}/g, 'sqrt($1)');
+    s = s.replace(/\\cdot|\\times/g, '*');
+    s = s.replace(/\\[,;!]/g, '');  // LaTeX 细间距（∫ f(x)\,dx 里的 \,）
+    s = s.replace(/e\s*\^\s*\{([^{}]*)\}/g, 'exp($1)');
+    s = s.replace(/\\?log\s*_\s*\{?(\d+)\}?\s*\(([^()]*)\)/g, 'log($2,$1)');
+    s = s.replace(/\blog\s*_?\s*(\d+)\s*\(([^()]*)\)/g, 'log($2,$1)');
+    s = s.replace(/\blog\s*_?\s*(\d+)\s+([0-9.]+)/g, 'log($2,$1)');
+    s = s.replace(/\\(sin|cos|tan|exp|log|sqrt|abs|pi|theta|phi)/g, '$1');
+    s = s.replace(/\{/g, '(').replace(/\}/g, ')');
+    return s;
+  }
+  // 连除（5 / 2 / sqrt(...)）模型容易读成 5*sqrt/2；两个以上除号才全加括号，单除号保持简洁
+  function fmtNode(node) {
+    const s = node.toString();
+    return (s.match(/\//g) || []).length > 1 ? node.toString({ parenthesis: 'all' }) : s;
+  }
+  // 有理函数导数先 rationalize，能化简成单一分式（-7/(x-2)^2）；遇三角函数/根式会抛错，退回 simplify
+  function simplifyDerivative(node) {
+    try { return math.rationalize(node); } catch (e) { return math.simplify(node); }
   }
   // 网格扫描 + 二分：覆盖多根，同时拒绝极点附近的伪变号（1/x 不会报 0）
   function findRoots(F, lo, hi) {
@@ -87,7 +113,7 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
     let result, latex = '', numeric = false;
     switch (op) {
       case 'eval': {
-        const e2 = rename(expr);
+        const e2 = rename(sanitize(expr));
         if (e2.indexOf(VAR) >= 0) throw new Error('eval 需要无自由变量的数值表达式；含变量请用 derivative / solve / integrate_def');
         try {
           const value = math.evaluate(e2);
@@ -106,20 +132,22 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
         break;
       }
       case 'simplify': {
-        const s = math.simplify(rename(expr));
-        result = restore(s.toString());
+        const s = math.simplify(rename(sanitize(expr)));
+        result = restore(fmtNode(s));
         try { latex = fixTex(restore(s.toTex())); } catch (e) {}
         break;
       }
       case 'derivative': {
-        const d = math.simplify(math.derivative(rename(expr), VAR));
-        result = restore(d.toString());
+        const d = simplifyDerivative(math.derivative(rename(sanitize(expr)), VAR));
+        result = restore(fmtNode(d));
         latex = fixTex(restore(d.toTex()));
         break;
       }
       case 'integrate_def': {
         const lo = bound(lower, 0), hi = bound(upper, 1);
-        const code = math.compile(rename(expr));
+        // 模型有时把积分式整段粘进来（(x^3-2x+1)\,dx），去掉尾部 dx/dt
+        const body = sanitize(expr).replace(/\s*d\s*[a-zA-Z]\s*$/, '');
+        const code = math.compile(rename(body));
         const f = (t) => {
           const scope = {}; scope[VAR] = t;
           const r = code.evaluate(scope);
@@ -140,13 +168,13 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
         throw new Error('符号积分暂未接入（二期 nerdamer），请用 integrate_def 做数值积分');
       case 'solve': {
         const lo = bound(lower, -100), hi = bound(upper, 100);
-        const parts = String(expr).split('=');
+        const parts = sanitize(expr).split('=');
         let F;
         if (parts.length === 2) {
           const l = math.compile(rename(parts[0])), r = math.compile(rename(parts[1]));
           F = (t) => { const sc = {}; sc[VAR] = t; return Number(l.evaluate(sc)) - Number(r.evaluate(sc)); };
         } else {
-          const c = math.compile(rename(expr));
+          const c = math.compile(rename(sanitize(expr)));
           F = (t) => { const sc = {}; sc[VAR] = t; return Number(c.evaluate(sc)); };
         }
         const roots = findRoots(F, lo, hi);
@@ -189,6 +217,13 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
           case 'combination': { const [n, k] = xs; result = fmt(math.combinations(n, k)); break; }
           case 'permutation': { const [n, k] = xs; result = fmt(math.permutations(n, k)); break; }
           case 'binomial': { const [n, k, p] = xs; result = fmt(math.combinations(n, k) * p ** k * (1 - p) ** (n - k)); break; }
+          case 'normalcdf': {
+            if (xs.length < 3) throw new Error('normalcdf 需要 data=mu,sigma,x');
+            const [mu, sigma, x] = xs;
+            if (!(sigma > 0)) throw new Error('标准差必须为正');
+            result = fmt(0.5 * (1 + math.erf((x - mu) / (sigma * Math.sqrt(2)))));
+            break;
+          }
           default: throw new Error('未知 stat_op: ' + statOp);
         }
         numeric = true;
