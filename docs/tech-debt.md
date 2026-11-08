@@ -56,5 +56,6 @@
 - **化简不到「教科书答案」**：math.js `simplify` 只合并同类项，不能约分 `(x^2-9)/(x-3)`、不能因式分解、不认 `sin^2x+cos^2x=1`；`rationalize` 同样不约分。二期接 nerdamer 或自写多项式除法。
 - **符号积分未接**：`integrate_indef` 直接返回「二期 nerdamer」错误；定积分是 Simpson 数值解（20000 段，结果标「数值解」）。
 - **单方程求解**：`solve` 只支持单变量单方程（默认区间 [-100,100]），线性方程组需要模型先代入消元；极限完全不支持。
-- **iOS 壳未接入口**：一期只在 demo-cli 落地；iOS 端要复制 `MathEvalEngine/MathEvalTool/CalcRouter` 并把 `math.js`+`MathEvalBridge.js` 作为 bundle 资源（`Bundle.main` 而非 `Bundle.module`）。
+- **math.js 双副本**：CLI 的 `apps/demo-cli/.../Resources/` 与 iOS 的 `apps/ios-shell/Math/` 各存一份 math.js（634KB），升级时必须同步；后续可考虑脚本校验 sha256。
+- **iOS 计算页未真机点按**：设备目标编译通过、bundle 资源加载已实测，但 UI 交互尚未真机走查。
 - **验收口径**：56/56 的「纯计算子集」不含上述能力（不定积分 2、极限 2、最值/切线/二阶/参数 4、化简/因式/方程组/圆 5）；对外引用时不能写成「69 题全过」。

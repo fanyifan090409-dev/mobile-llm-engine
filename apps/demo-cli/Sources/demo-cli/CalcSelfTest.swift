@@ -109,6 +109,10 @@ enum CalcSelfTest {
         RouterCase(input: "均值: 4,8,6,10,2", op: "stats", expr: "", statOp: "mean", data: "4,8,6,10,2"),
         RouterCase(input: "样本标准差: 2,4,6,8", op: "stats", expr: "", statOp: "std", data: "2,4,6,8"),
         RouterCase(input: "总体方差: 2,4,6,8", op: "stats", expr: "", statOp: "variance_pop", data: "2,4,6,8"),
+        RouterCase(input: "回归: 1,2;2,4;3,5", op: "stats", expr: "", statOp: "regression", data: "1,2;2,4;3,5"),
+        RouterCase(input: "组合: 8,3", op: "stats", expr: "", statOp: "combination", data: "8,3"),
+        RouterCase(input: "排列: 10,3", op: "stats", expr: "", statOp: "permutation", data: "10,3"),
+        RouterCase(input: "二项分布: 5,3,0.4", op: "stats", expr: "", statOp: "binomial", data: "5,3,0.4"),
         RouterCase(input: "solve: 2*x+3=7", op: "solve", expr: "2*x+3=7"),
         RouterCase(input: "x^2-5x+6=0", op: "solve", expr: "x^2-5x+6=0"),
     ]

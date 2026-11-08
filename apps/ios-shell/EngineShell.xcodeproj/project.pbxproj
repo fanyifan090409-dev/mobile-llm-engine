@@ -22,6 +22,10 @@
 		DD0000000000000000000001 /* VoicePOC.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0000000000000000000002 /* VoicePOC.swift */; };
 		EE0000000000000000000001 /* VoicePOCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0000000000000000000002 /* VoicePOCView.swift */; };
 		FF0000000000000000000001 /* VoiceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0000000000000000000002 /* VoiceService.swift */; };
+		AB0000000000000000000001 /* MathEvalEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000004 /* MathEvalEngine.swift */; };
+		AB0000000000000000000002 /* CalcRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000005 /* CalcRouter.swift */; };
+		AB0000000000000000000003 /* MathCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000006 /* MathCalcView.swift */; };
+		AB0000000000000000000007 /* Math in Resources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000008 /* Math */; };
 		AA0000000000000000000005 /* Models in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000D /* Models */; };
 /* End PBXBuildFile section */
 
@@ -40,6 +44,10 @@
 		DD0000000000000000000002 /* VoicePOC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePOC.swift; sourceTree = "<group>"; };
 		EE0000000000000000000002 /* VoicePOCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoicePOCView.swift; sourceTree = "<group>"; };
 		FF0000000000000000000002 /* VoiceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceService.swift; sourceTree = "<group>"; };
+		AB0000000000000000000004 /* MathEvalEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../../demo-cli/Sources/demo-cli/MathEvalEngine.swift"; sourceTree = "<group>"; };
+		AB0000000000000000000005 /* CalcRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../../demo-cli/Sources/demo-cli/CalcRouter.swift"; sourceTree = "<group>"; };
+		AB0000000000000000000006 /* MathCalcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathCalcView.swift; sourceTree = "<group>"; };
+		AB0000000000000000000008 /* Math */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Math; sourceTree = "<group>"; };
 		AA000000000000000000000D /* Models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Models; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -61,6 +69,7 @@
 			children = (
 				AA0000000000000000000009 /* Sources */,
 				AA000000000000000000000D /* Models */,
+				AB0000000000000000000008 /* Math */,
 				AA000000000000000000000E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -81,6 +90,9 @@
 				DD0000000000000000000002 /* VoicePOC.swift */,
 				EE0000000000000000000002 /* VoicePOCView.swift */,
 				FF0000000000000000000002 /* VoiceService.swift */,
+				AB0000000000000000000004 /* MathEvalEngine.swift */,
+				AB0000000000000000000005 /* CalcRouter.swift */,
+				AB0000000000000000000006 /* MathCalcView.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -160,6 +172,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000000000000000000005 /* Models in Resources */,
+				AB0000000000000000000007 /* Math in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -183,6 +196,9 @@
 				DD0000000000000000000001 /* VoicePOC.swift in Sources */,
 				EE0000000000000000000001 /* VoicePOCView.swift in Sources */,
 				FF0000000000000000000001 /* VoiceService.swift in Sources */,
+				AB0000000000000000000001 /* MathEvalEngine.swift in Sources */,
+				AB0000000000000000000002 /* CalcRouter.swift in Sources */,
+				AB0000000000000000000003 /* MathCalcView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

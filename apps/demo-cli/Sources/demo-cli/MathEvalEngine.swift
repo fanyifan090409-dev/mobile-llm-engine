@@ -31,13 +31,25 @@ final class MathEvalEngine {
     private static let maxDataLength = 4000
 
     private let bundle: Bundle
+    private let resourceDirectory: String?
     private let lock = NSLock()
     private var context: JSContext?
     private var casEval: JSValue?
     private var loadFailure: String?
 
-    init(bundle: Bundle = .module) {
+    /// resourceDirectory：Xcode App 里 math.js 放在 Math/ 文件夹引用下；SPM 资源在 bundle 根目录传 nil
+    init(bundle: Bundle = MathEvalEngine.defaultBundle, resourceDirectory: String? = nil) {
         self.bundle = bundle
+        self.resourceDirectory = resourceDirectory
+    }
+
+    /// SPM（demo-cli）用 Bundle.module；Xcode App 目标没有 module bundle，用 Bundle.main
+    private static var defaultBundle: Bundle {
+        #if SWIFT_PACKAGE
+        return .module
+        #else
+        return .main
+        #endif
     }
 
     func run(op: String, expr: String,
@@ -98,9 +110,11 @@ final class MathEvalEngine {
         if let casEval { return casEval }
         if let loadFailure { throw Failure.unavailable(loadFailure) }
         do {
-            guard let mathURL = bundle.url(forResource: "math", withExtension: "js"),
-                  let bridgeURL = bundle.url(forResource: "MathEvalBridge", withExtension: "js") else {
-                throw Failure.unavailable("缺少 math.js 资源（检查 Package.swift resources）")
+            guard let mathURL = bundle.url(forResource: "math", withExtension: "js",
+                                           subdirectory: resourceDirectory),
+                  let bridgeURL = bundle.url(forResource: "MathEvalBridge", withExtension: "js",
+                                             subdirectory: resourceDirectory) else {
+                throw Failure.unavailable("缺少 math.js 资源（检查 Package.swift resources / App 的 Math 文件夹）")
             }
             let mathSource = try String(contentsOf: mathURL, encoding: .utf8)
             let bridgeSource = try String(contentsOf: bridgeURL, encoding: .utf8)

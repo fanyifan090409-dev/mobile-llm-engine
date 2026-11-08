@@ -76,6 +76,10 @@ enum CalcRouter {
 
     private static func statsRoute(_ text: String) -> (String, String)? {
         let rules: [(String, String)] = [
+            (#"^(?:回归|regression)[:：]?\s*(.+)$"#, "regression"),
+            (#"^(?:组合数|组合|combination)[:：]?\s*(.+)$"#, "combination"),
+            (#"^(?:排列数|排列|permutation)[:：]?\s*(.+)$"#, "permutation"),
+            (#"^(?:二项分布|binomial)[:：]?\s*(.+)$"#, "binomial"),
             (#"^(?:样本标准差|std_sample|sample_std)[:：]?\s*(.+)$"#, "std"),
             (#"^(?:总体标准差|std_pop|population_std)[:：]?\s*(.+)$"#, "std_pop"),
             (#"^(?:样本方差|variance_sample|sample_variance)[:：]?\s*(.+)$"#, "variance"),

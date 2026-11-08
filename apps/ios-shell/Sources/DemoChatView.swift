@@ -1128,6 +1128,7 @@ struct DemoChatView: View {
     @State private var showModelLibraryFromLaunch = false
     @StateObject private var voice = VoiceService()
     @State private var showVoiceSheet = false
+    @State private var showCalculator = false
     @State private var voiceDraft = ""
     @State private var voiceReplyPending = false
     @State private var showVoiceError = false
@@ -1147,7 +1148,8 @@ struct DemoChatView: View {
                 }
                 .padding(.top, 10)
                 chatList
-                if ready { chips }
+                // 计算入口不需要模型，芯片行常驻；对话示例在模型未就绪时禁用
+                chips
                 if voice.isRecording { recordingBanner }
                 inputBar
             }
@@ -1156,6 +1158,7 @@ struct DemoChatView: View {
         .sheet(isPresented: $model.showLog) { LogSheetView(log: log) }
         .sheet(isPresented: $model.showContextPicker) { ContextSheet(model: model) }
         .sheet(isPresented: $showVoiceSheet) { voiceConfirmSheet }
+        .sheet(isPresented: $showCalculator) { NavigationStack { MathCalcView() } }
         .fullScreenCover(isPresented: $model.showOnboarding) { OnboardingView(model: model) }
         .fullScreenCover(isPresented: $showModelLibraryFromLaunch) {
             NavigationStack { ModelLibraryView(model: model) }
@@ -1340,6 +1343,18 @@ struct DemoChatView: View {
     private var chips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
+                // CAS 计算入口：不需要模型，点开即算（docs/plans/数学CAS工具接入.md）
+                Button {
+                    showCalculator = true
+                } label: {
+                    Label("计算", systemImage: "function")
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .overlay(Capsule().strokeBorder(.white.opacity(scheme == .dark ? 0.14 : 0.55), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
                 ForEach(DemoModel.demoPrompts, id: \.text) { p in
                     Button {
                         send(p.text, usesTools: p.usesTools)
@@ -1352,7 +1367,7 @@ struct DemoChatView: View {
                             .overlay(Capsule().strokeBorder(.white.opacity(scheme == .dark ? 0.14 : 0.55), lineWidth: 1))
                     }
                     .buttonStyle(.plain)
-                    .disabled(model.running)
+                    .disabled(model.running || !ready)
                 }
             }
             .padding(.horizontal, 16)
@@ -1585,6 +1600,11 @@ struct ContextSheet: View {
                 }
 
                 Section("更多") {
+                    NavigationLink {
+                        MathCalcView()
+                    } label: {
+                        Label("数学计算", systemImage: "function")
+                    }
                     NavigationLink {
                         ModelLibraryView(model: model)
                     } label: {

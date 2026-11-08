@@ -119,12 +119,21 @@ swift build
 
 验收结果（Mac M5，debug/release 均同）：
 
-- 纯计算子集 **56/56（100%）**：ap_calc 17、precalc 20、ap_stats 19；
-- P95 **99.6ms**、最慢 224ms（Simpson 20000 段定积分）、math.js 首次载入 41ms；
+- 纯计算子集 **56/56（100%）**：ap_calc 17、precalc 20、ap_stats 19；路由回归 16/16；
+- P95 **97-100ms**、最慢约 220ms（Simpson 20000 段定积分）、math.js 首次载入 40-77ms；
 - 排除 13 题：不定积分 2、极限 2、最值/切线/二阶/参数方程 4、化简/因式分解/方程组/圆 5 —— 需要推导或二期能力；
 - 已修回归：负整数符号（mathjs Fraction 的 `n` 无符号）、隐式乘法 `5x` 变量漏替换、`\cdotx` 非法 LaTeX。
 
+iOS 入口（2026-11-08 补）：
+
+- `apps/ios-shell/Sources/MathCalcView.swift`：输入框 + 示例 + 结果卡（回显「我理解的计算」+ 数值解标记 + LaTeX 折叠）；计算不需要模型；
+- 入口两处：对话页快捷芯片「计算」（模型未加载也常驻）、设置 → 更多 → 数学计算；
+- `MathEvalEngine.swift` / `CalcRouter.swift` 由 iOS 工程以相对路径直接引用 CLI 的同一份源码（`MathEvalEngine` 用 `#if SWIFT_PACKAGE` 区分 `Bundle.module` / `Bundle.main`）；
+- 资源：`apps/ios-shell/Math/` 以文件夹引用打进 App（`Math/math.js`），加载时 `subdirectory: "Math"`；
+- 验证：真机目标 `xcodebuild` 通过；用 `Bundle(path: EngineShell.app)` + `subdirectory: "Math"` 的 macOS 小程序实测 1/2、3x²+2、解方程均正确。
+
 未做（后续）：
 
-- iOS 壳的计算入口与 SwiftUI 页面（引擎类可直接复制，资源走 `Bundle.main`）；
-- 二期 1,000 条 `math_eval` 工具调用 SFT 与 69 题端到端验收。
+- 二期 1,000 条 `math_eval` 工具调用 SFT 与 69 题端到端验收；
+- iOS 计算页的真机点按走查（设备目标已编译通过，资源加载已实测）；
+- `apps/ios-shell/Math/` 与 `apps/demo-cli/.../Resources/` 是两份 math.js 副本，升级 math.js 时必须同步。
