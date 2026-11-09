@@ -61,6 +61,12 @@ swift run demo-cli --model ../../qwen3-0.6b-sft-Q5_K_M.gguf --quant Q5_K_M --thi
 - 模型量化档位说明见 [docs/模型量化档位用户指南.md](docs/模型量化档位用户指南.md)
 - 双 Mac 实测数据见 [docs/评测/M1.5-双Mac基准表.md](docs/评测/M1.5-双Mac基准表.md)
 
+## 公式 OCR（iOS 演示壳）
+
+iOS 演示壳支持从相册选数学题照片：Apple Vision 识别中文题干，[Texo](https://github.com/alephpi/Texo)（20M 蒸馏公式识别模型）在本机通过 ONNX Runtime 把公式还原成 LaTeX，再转成可编辑的题意交给 SFT27e 数学模型调用 CAS 计算。图片与识别结果都不出设备。
+
+Texo 权重以 AGPL-3.0 分发，本项目因此整体以 [AGPL-3.0](LICENSE) 发布。ONNX Runtime 由 sherpa-onnx 的 SPM 依赖提供（MIT）；模型资产不入库，跑 `./scripts/fetch_texo_assets.sh` 拉取。
+
 ## 反馈
 
 试跑中任何问题（装不上、跑不动、回答怪），直接提 [Issue](https://github.com/fanyifan090409-dev/mobile-llm-engine/issues)，附上你的 Mac 型号和终端输出。
