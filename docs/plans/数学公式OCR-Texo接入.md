@@ -60,8 +60,7 @@
    复现：装 Debug 包后
    `xcrun devicectl device process launch --device <udid> --terminate-existing com.enginekit.ios-shell --formula-ocr-selftest`，
    再从 appDataContainer 取 `Documents/engine-shell.log`。
-5. ⏳ 真机相册点选走查：PhotosPicker → Vision + Texo 合并 → 输入框可编辑（需人工点一下；
-   自动化通道只有 Canvas 设备面，当前无真机界面）。
+5. ✅ 真机相册点选走查：PhotosPicker → Vision + Texo 合并 → 输入框可编辑（2026-11-09 用户确认通过）。
 6. ⏳ 内存隔离：自检时整机常驻 922MB（LLM 正在加载，OCR 增量未单独测）。
 7. ⏳ 回归：13/13 工具场景不受影响（math 工具仅 sft27 模型白名单启用）。
 
