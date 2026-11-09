@@ -1,6 +1,7 @@
 import SwiftUI
 import EngineKit
 import UIKit
+import PhotosUI
 
 // ==================== 数据模型 ====================
 
@@ -820,7 +821,7 @@ final class DemoModel {
         showOnboarding = false
     }
 
-    func send(_ raw: String, usesTools: Bool = true) {
+    func send(_ raw: String, usesTools: Bool = true, contextHint: String? = nil) {
         let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard case .ready = phase, !running, !text.isEmpty else { return }
         running = true
@@ -830,7 +831,8 @@ final class DemoModel {
         // 真机实测十几轮后解码掉到 9.4 tok/s（tech-debt #4）
         if history.count > 8 { history.removeFirst(history.count - 8) }
         // 单模型工具轮前置日期锚点与时间提示；双模型交给领队 system 日期行，user 保持原文
-        let content = multi ? text : (usesTools ? Self.toolContent(text) : text)
+        var content = multi ? text : (usesTools ? Self.toolContent(text) : text)
+        if let contextHint { content = contextHint + content }
         history.append(Message(role: "user", content: content))
         log.log("开始生成：\(content)")
         messages.append(ChatMessage(role: .user, text: text))
@@ -1139,6 +1141,13 @@ struct DemoChatView: View {
     @State private var voiceReplyPending = false
     @State private var showVoiceError = false
     @State private var voiceErrorText = ""
+    @State private var photoItem: PhotosPickerItem?
+    @State private var ocrBusy = false
+    @State private var ocrError: String?
+    @State private var ocrInput = false
+
+    // 照片 OCR 会把 x² 压平成 x2：只给模型上下文加提示，聊天气泡仍显示原文
+    static let ocrHint = "【图片识别】以下题目来自照片 OCR，上下标可能丢失（如 x2 可能是 x^2），请按数学常识还原题意。\n"
 
     private var ready: Bool { if case .ready = model.phase { return true }; return false }
     private var canSend: Bool { ready && !model.running && !input.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -1173,6 +1182,18 @@ struct DemoChatView: View {
             Button("好", role: .cancel) {}
         } message: {
             Text(voiceErrorText)
+        }
+        .alert("图片识别", isPresented: Binding(
+            get: { ocrError != nil },
+            set: { if !$0 { ocrError = nil } }
+        )) {
+            Button("好", role: .cancel) {}
+        } message: {
+            Text(ocrError ?? "")
+        }
+        .onChange(of: input) { _, value in
+            // 用户清空输入框视为放弃这次图片识别，避免下一条普通问题带上 OCR 提示
+            if value.isEmpty { ocrInput = false }
         }
         .onChange(of: voice.notice) { _, notice in
             guard let notice else { return }
@@ -1398,6 +1419,27 @@ struct DemoChatView: View {
 
     private var inputBar: some View {
         HStack(spacing: 10) {
+            // 数学题常以照片形式出现：本机 Vision 识别成文字，填入输入框供用户改错后再发
+            PhotosPicker(selection: $photoItem, matching: .images, photoLibrary: .shared()) {
+                Group {
+                    if ocrBusy {
+                        ProgressView()
+                    } else {
+                        Image(systemName: "photo")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color(red: 0.04, green: 0.52, blue: 1.0))
+                    }
+                }
+                .frame(width: 30, height: 30)
+                .background(Color(red: 0.90, green: 0.94, blue: 1.0), in: Circle())
+            }
+            .disabled(!ready || model.running || ocrBusy)
+            .accessibilityLabel("图片识别")
+            .onChange(of: photoItem) { _, item in
+                guard let item else { return }
+                Task { await importPhoto(item) }
+            }
+
             Button {
                 handleMicTap()
             } label: {
@@ -1442,10 +1484,33 @@ struct DemoChatView: View {
 
     // 手动输入按意图路由（chips 显式传 true/false）；默认不挂工具，避免翻译/闲聊被误判成加日历
     private func send(_ text: String, usesTools: Bool? = nil) {
-        model.send(text, usesTools: usesTools ?? DemoModel.looksLikeCalendarRequest(text))
+        let hint = ocrInput ? Self.ocrHint : nil
+        ocrInput = false
+        model.send(text, usesTools: usesTools ?? DemoModel.looksLikeCalendarRequest(text), contextHint: hint)
         input = ""
         sentCount += 1
         focused = false
+    }
+
+    // 相册选图 → 本机 OCR → 填入输入框（保留人工改错环节，符合「AI 出错怎么办」）
+    private func importPhoto(_ item: PhotosPickerItem) async {
+        ocrBusy = true
+        defer {
+            ocrBusy = false
+            photoItem = nil
+        }
+        do {
+            guard let data = try await item.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data) else { throw PhotoOCR.Failure.decode }
+            let text = try await PhotoOCR.recognize(image)
+            input = text
+            ocrInput = true
+            focused = true
+            log.log("图片识别完成：\(text.prefix(220))")
+        } catch {
+            ocrError = (error as? LocalizedError)?.errorDescription ?? "识别失败：\(error)"
+            log.log("图片识别失败：\(error)")
+        }
     }
 
     private func handleMicTap() {

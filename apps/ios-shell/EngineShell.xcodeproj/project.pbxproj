@@ -24,6 +24,7 @@
 		FF0000000000000000000001 /* VoiceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0000000000000000000002 /* VoiceService.swift */; };
 		AB0000000000000000000001 /* MathEvalEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000004 /* MathEvalEngine.swift */; };
 		AB0000000000000000000009 /* MathEvalTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000000000000000000000A /* MathEvalTool.swift */; };
+		AB000000000000000000000B /* PhotoOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000000000000000000000C /* PhotoOCR.swift */; };
 		AB0000000000000000000002 /* CalcRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000005 /* CalcRouter.swift */; };
 		AB0000000000000000000003 /* MathCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000006 /* MathCalcView.swift */; };
 		AB0000000000000000000007 /* Math in Resources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000008 /* Math */; };
@@ -47,6 +48,7 @@
 		FF0000000000000000000002 /* VoiceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceService.swift; sourceTree = "<group>"; };
 		AB0000000000000000000004 /* MathEvalEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../../demo-cli/Sources/demo-cli/MathEvalEngine.swift"; sourceTree = "<group>"; };
 		AB000000000000000000000A /* MathEvalTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../../demo-cli/Sources/demo-cli/MathEvalTool.swift"; sourceTree = "<group>"; };
+		AB000000000000000000000C /* PhotoOCR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoOCR.swift; sourceTree = "<group>"; };
 		AB0000000000000000000005 /* CalcRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../../demo-cli/Sources/demo-cli/CalcRouter.swift"; sourceTree = "<group>"; };
 		AB0000000000000000000006 /* MathCalcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathCalcView.swift; sourceTree = "<group>"; };
 		AB0000000000000000000008 /* Math */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Math; sourceTree = "<group>"; };
@@ -94,6 +96,7 @@
 				FF0000000000000000000002 /* VoiceService.swift */,
 				AB0000000000000000000004 /* MathEvalEngine.swift */,
 				AB000000000000000000000A /* MathEvalTool.swift */,
+				AB000000000000000000000C /* PhotoOCR.swift */,
 				AB0000000000000000000005 /* CalcRouter.swift */,
 				AB0000000000000000000006 /* MathCalcView.swift */,
 			);
@@ -201,6 +204,7 @@
 				FF0000000000000000000001 /* VoiceService.swift in Sources */,
 				AB0000000000000000000001 /* MathEvalEngine.swift in Sources */,
 				AB0000000000000000000009 /* MathEvalTool.swift in Sources */,
+				AB000000000000000000000B /* PhotoOCR.swift in Sources */,
 				AB0000000000000000000002 /* CalcRouter.swift in Sources */,
 				AB0000000000000000000003 /* MathCalcView.swift in Sources */,
 			);
