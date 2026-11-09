@@ -9,6 +9,7 @@ struct EngineShellApp: App {
                 .task {
                     #if DEBUG
                     print(VoicePOC.versionLine)
+                    FormulaOCRProbe.runIfRequested()
                     #endif
                 }
         }

@@ -55,9 +55,15 @@
    单张 33–63ms（含预处理与贪心解码）。
 3. ✅ iOS 模拟器探针：用真实 `TexoOCR` + UIKit 路径跑 8 张图，8/8 题意正确，
    单张 137–306ms（首张含 ORT session 加载）。
-4. ⏳ 真机：相册选公式照片 → 输入框出现可编辑题意 → SFT27e 调 math_eval 出答案；飞行模式可用。
-5. ⏳ 真机延迟/内存：目标单张 < 1.5s、内存峰值增量 < 150MB（当前手边无已连接设备）。
-6. ⏳ 回归：13/13 工具场景不受影响（math 工具仅 sft27 模型白名单启用）。
+4. ✅ 真机自检（iPhone 18 Pro Max，iOS 27.0.1，Debug）：冷启动 236ms、热 186ms，
+   `\lim_{x\rarr0}\frac{\sin x}{x}` → `求 ((sin(x))/(x)) 在 x→0 时的极限。` 正确。
+   复现：装 Debug 包后
+   `xcrun devicectl device process launch --device <udid> --terminate-existing com.enginekit.ios-shell --formula-ocr-selftest`，
+   再从 appDataContainer 取 `Documents/engine-shell.log`。
+5. ⏳ 真机相册点选走查：PhotosPicker → Vision + Texo 合并 → 输入框可编辑（需人工点一下；
+   自动化通道只有 Canvas 设备面，当前无真机界面）。
+6. ⏳ 内存隔离：自检时整机常驻 922MB（LLM 正在加载，OCR 增量未单独测）。
+7. ⏳ 回归：13/13 工具场景不受影响（math 工具仅 sft27 模型白名单启用）。
 
 ## 风险
 

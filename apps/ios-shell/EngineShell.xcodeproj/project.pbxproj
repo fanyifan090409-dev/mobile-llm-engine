@@ -34,6 +34,8 @@
 		AB0000000000000000000025 /* TexoRunner.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000026 /* TexoRunner.mm */; };
 		AB0000000000000000000027 /* FormulaOCR in Resources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000028 /* FormulaOCR */; };
 		CC0000000000000000000006 /* onnxruntime-ios in Frameworks */ = {isa = PBXBuildFile; productRef = CC0000000000000000000005 /* onnxruntime-ios */; };
+		AB0000000000000000000031 /* FormulaOCRProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000032 /* FormulaOCRProbe.swift */; };
+		AB000000000000000000002F /* formula-selftest.png in Resources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000030 /* formula-selftest.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -65,6 +67,8 @@
 		AB000000000000000000002C /* EngineShell-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EngineShell-Bridging-Header.h"; sourceTree = "<group>"; };
 		AB0000000000000000000028 /* FormulaOCR */ = {isa = PBXFileReference; lastKnownFileType = folder; path = FormulaOCR; sourceTree = "<group>"; };
 		AB000000000000000000002E /* onnxruntime-headers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "onnxruntime-headers"; sourceTree = "<group>"; };
+		AB0000000000000000000032 /* FormulaOCRProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormulaOCRProbe.swift; sourceTree = "<group>"; };
+		AB0000000000000000000030 /* formula-selftest.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "formula-selftest.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +92,7 @@
 				AA000000000000000000000D /* Models */,
 				AB0000000000000000000008 /* Math */,
 				AB0000000000000000000028 /* FormulaOCR */,
+				AB0000000000000000000033 /* TestAssets */,
 				AB000000000000000000002D /* Frameworks */,
 				AA000000000000000000000E /* Products */,
 			);
@@ -99,6 +104,14 @@
 				AB000000000000000000002E /* onnxruntime-headers */,
 			);
 			path = Frameworks;
+			sourceTree = "<group>";
+		};
+		AB0000000000000000000033 /* TestAssets */ = {
+			isa = PBXGroup;
+			children = (
+				AB0000000000000000000030 /* formula-selftest.png */,
+			);
+			path = TestAssets;
 			sourceTree = "<group>";
 		};
 		AA0000000000000000000009 /* Sources */ = {
@@ -127,6 +140,7 @@
 				AB000000000000000000002B /* TexoRunner.h */,
 				AB0000000000000000000026 /* TexoRunner.mm */,
 				AB000000000000000000002C /* EngineShell-Bridging-Header.h */,
+				AB0000000000000000000032 /* FormulaOCRProbe.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -210,6 +224,7 @@
 				AA0000000000000000000005 /* Models in Resources */,
 				AB0000000000000000000007 /* Math in Resources */,
 				AB0000000000000000000027 /* FormulaOCR in Resources */,
+				AB000000000000000000002F /* formula-selftest.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,6 +256,7 @@
 				AB0000000000000000000021 /* FormulaText.swift in Sources */,
 				AB0000000000000000000023 /* TexoOCR.swift in Sources */,
 				AB0000000000000000000025 /* TexoRunner.mm in Sources */,
+				AB0000000000000000000031 /* FormulaOCRProbe.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
