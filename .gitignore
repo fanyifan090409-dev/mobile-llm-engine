@@ -16,6 +16,9 @@ venv/
 # llama.cpp vendor 克隆与构建产物（钉版 b11857，由引导脚本记录 tag）
 tools/llama.cpp/
 
+# 公式 OCR 资产（scripts/fetch_texo_assets.sh 拉取 Texo ONNX 76MB；ORT 头文件已入库）
+apps/ios-shell/FormulaOCR/
+
 # CLLaMA 静态库产物（scripts/build-llama-static.sh 生成，头文件随 tag 同步入库）
 engine/Sources/CLLaMA/lib/
 

@@ -1147,7 +1147,7 @@ struct DemoChatView: View {
     @State private var ocrInput = false
 
     // 照片 OCR 会把 x² 压平成 x2：只给模型上下文加提示，聊天气泡仍显示原文
-    static let ocrHint = "【图片识别】以下题目来自照片 OCR，上下标可能丢失（如 x2 可能是 x^2），请按数学常识还原题意。\n"
+    static let ocrHint = "【图片识别】以下题目来自照片 OCR，公式已尽量还原成标准写法（如 x^2、1/3）；识别可能有误，请按数学常识核对后作答。\n"
 
     private var ready: Bool { if case .ready = model.phase { return true }; return false }
     private var canSend: Bool { ready && !model.running && !input.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -1493,6 +1493,7 @@ struct DemoChatView: View {
     }
 
     // 相册选图 → 本机 OCR → 填入输入框（保留人工改错环节，符合「AI 出错怎么办」）
+    // Vision 负责中文题干/普通文字，Texo 负责数学排版；两路都本机跑，图片不出设备
     private func importPhoto(_ item: PhotosPickerItem) async {
         ocrBusy = true
         defer {
@@ -1502,15 +1503,50 @@ struct DemoChatView: View {
         do {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: data) else { throw PhotoOCR.Failure.decode }
-            let text = try await PhotoOCR.recognize(image)
-            input = text
+            let text = (try? await PhotoOCR.recognize(image)) ?? ""
+            let formula = await Self.recognizeFormula(image)
+            let merged = Self.mergePhotoResults(text: text, formula: formula)
+            guard !merged.isEmpty else { throw PhotoOCR.Failure.noText }
+            input = merged
             ocrInput = true
             focused = true
-            log.log("图片识别完成：\(text.prefix(220))")
+            log.log("图片识别完成：\(merged.prefix(220))")
         } catch {
             ocrError = (error as? LocalizedError)?.errorDescription ?? "识别失败：\(error)"
             log.log("图片识别失败：\(error)")
         }
+    }
+
+    // Texo 首次要加载 77MB ONNX，必须离开主线程；失败返回空串，让 Vision 结果兜底
+    private static func recognizeFormula(_ image: UIImage) async -> String {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                let result = (try? TexoOCR.problem(from: image))?.problem ?? ""
+                continuation.resume(returning: result)
+            }
+        }
+    }
+
+    // 两路结果合并：有公式就把结构化题意接在文字题干后面，纯文字照片不受影响
+    private static func mergePhotoResults(text: String, formula: String) -> String {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedFormula = formula.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedFormula.isEmpty else { return trimmedText }
+        guard !trimmedText.isEmpty else { return trimmedFormula }
+        guard looksMathematical(trimmedFormula) else { return trimmedText }
+        if trimmedText.contains(trimmedFormula) { return trimmedText }
+        return trimmedText + "\n" + trimmedFormula
+    }
+
+    private static func looksMathematical(_ latex: String) -> Bool {
+        guard latex.count <= 200 else { return false }
+        let strong = ["\\frac", "\\sqrt", "\\int", "\\sum", "\\lim", "\\binom",
+                      "\\sin", "\\cos", "\\tan", "\\log", "="]
+        if strong.contains(where: { latex.contains($0) }) { return true }
+        // 裸上下标只在有数字/常见变量时才算公式，防止纯文字照片被 Texo 噪声污染
+        guard latex.contains("^") || latex.contains("_") else { return false }
+        return latex.contains { $0.isNumber } || latex.contains("x")
+            || latex.contains("y") || latex.contains("z")
     }
 
     private func handleMicTap() {

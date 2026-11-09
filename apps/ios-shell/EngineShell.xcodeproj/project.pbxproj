@@ -29,6 +29,11 @@
 		AB0000000000000000000003 /* MathCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000006 /* MathCalcView.swift */; };
 		AB0000000000000000000007 /* Math in Resources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000008 /* Math */; };
 		AA0000000000000000000005 /* Models in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000D /* Models */; };
+		AB0000000000000000000021 /* FormulaText.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000022 /* FormulaText.swift */; };
+		AB0000000000000000000023 /* TexoOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000024 /* TexoOCR.swift */; };
+		AB0000000000000000000025 /* TexoRunner.mm in Sources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000026 /* TexoRunner.mm */; };
+		AB0000000000000000000027 /* FormulaOCR in Resources */ = {isa = PBXBuildFile; fileRef = AB0000000000000000000028 /* FormulaOCR */; };
+		CC0000000000000000000006 /* onnxruntime-ios in Frameworks */ = {isa = PBXBuildFile; productRef = CC0000000000000000000005 /* onnxruntime-ios */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +58,13 @@
 		AB0000000000000000000006 /* MathCalcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathCalcView.swift; sourceTree = "<group>"; };
 		AB0000000000000000000008 /* Math */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Math; sourceTree = "<group>"; };
 		AA000000000000000000000D /* Models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Models; sourceTree = "<group>"; };
+		AB0000000000000000000022 /* FormulaText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormulaText.swift; sourceTree = "<group>"; };
+		AB0000000000000000000024 /* TexoOCR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TexoOCR.swift; sourceTree = "<group>"; };
+		AB0000000000000000000026 /* TexoRunner.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TexoRunner.mm; sourceTree = "<group>"; };
+		AB000000000000000000002B /* TexoRunner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TexoRunner.h; sourceTree = "<group>"; };
+		AB000000000000000000002C /* EngineShell-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EngineShell-Bridging-Header.h"; sourceTree = "<group>"; };
+		AB0000000000000000000028 /* FormulaOCR */ = {isa = PBXFileReference; lastKnownFileType = folder; path = FormulaOCR; sourceTree = "<group>"; };
+		AB000000000000000000002E /* onnxruntime-headers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "onnxruntime-headers"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +74,7 @@
 			files = (
 				AA0000000000000000000004 /* EngineKit in Frameworks */,
 				CC0000000000000000000001 /* sherpa-onnx in Frameworks */,
+				CC0000000000000000000006 /* onnxruntime-ios in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,8 +87,18 @@
 				AA0000000000000000000009 /* Sources */,
 				AA000000000000000000000D /* Models */,
 				AB0000000000000000000008 /* Math */,
+				AB0000000000000000000028 /* FormulaOCR */,
+				AB000000000000000000002D /* Frameworks */,
 				AA000000000000000000000E /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		AB000000000000000000002D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AB000000000000000000002E /* onnxruntime-headers */,
+			);
+			path = Frameworks;
 			sourceTree = "<group>";
 		};
 		AA0000000000000000000009 /* Sources */ = {
@@ -99,6 +122,11 @@
 				AB000000000000000000000C /* PhotoOCR.swift */,
 				AB0000000000000000000005 /* CalcRouter.swift */,
 				AB0000000000000000000006 /* MathCalcView.swift */,
+				AB0000000000000000000022 /* FormulaText.swift */,
+				AB0000000000000000000024 /* TexoOCR.swift */,
+				AB000000000000000000002B /* TexoRunner.h */,
+				AB0000000000000000000026 /* TexoRunner.mm */,
+				AB000000000000000000002C /* EngineShell-Bridging-Header.h */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -130,6 +158,7 @@
 			packageProductDependencies = (
 				AA0000000000000000000014 /* EngineKit */,
 				CC0000000000000000000002 /* sherpa-onnx */,
+				CC0000000000000000000005 /* onnxruntime-ios */,
 			);
 			productName = EngineShell;
 			productReference = AA0000000000000000000006 /* EngineShell.app */;
@@ -162,6 +191,7 @@
 			packageReferences = (
 				AA0000000000000000000017 /* XCLocalSwiftPackageReference "../../engine" */,
 				CC0000000000000000000003 /* XCRemoteSwiftPackageReference "sherpa-onnx" */,
+				CC0000000000000000000004 /* XCRemoteSwiftPackageReference "onnxruntime-libs" */,
 			);
 			productRefGroup = AA000000000000000000000E /* Products */;
 			projectDirPath = "";
@@ -179,6 +209,7 @@
 			files = (
 				AA0000000000000000000005 /* Models in Resources */,
 				AB0000000000000000000007 /* Math in Resources */,
+				AB0000000000000000000027 /* FormulaOCR in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,6 +238,9 @@
 				AB000000000000000000000B /* PhotoOCR.swift in Sources */,
 				AB0000000000000000000002 /* CalcRouter.swift in Sources */,
 				AB0000000000000000000003 /* MathCalcView.swift in Sources */,
+				AB0000000000000000000021 /* FormulaText.swift in Sources */,
+				AB0000000000000000000023 /* TexoOCR.swift in Sources */,
+				AB0000000000000000000025 /* TexoRunner.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,6 +303,25 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = MKPQF9BJQ6;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/Frameworks/onnxruntime-headers",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lc++",
+					"-framework", CoreML,
+					"-framework", CoreFoundation,
+					"-framework", Foundation,
+					"-framework", Security,
+					"-framework", Accelerate,
+					"-framework", CoreGraphics,
+					"-framework", VideoToolbox,
+					"-framework", CoreVideo,
+					"-framework", CoreMedia,
+				);
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/EngineShell-Bridging-Header.h";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Agent 实验室";
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "写入日历事件需要你的授权（本地工具调用演示）";
@@ -297,6 +350,25 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = MKPQF9BJQ6;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/Frameworks/onnxruntime-headers",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lc++",
+					"-framework", CoreML,
+					"-framework", CoreFoundation,
+					"-framework", Foundation,
+					"-framework", Security,
+					"-framework", Accelerate,
+					"-framework", CoreGraphics,
+					"-framework", VideoToolbox,
+					"-framework", CoreVideo,
+					"-framework", CoreMedia,
+				);
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/EngineShell-Bridging-Header.h";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Agent 实验室";
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "写入日历事件需要你的授权（本地工具调用演示）";
@@ -358,6 +430,14 @@
 				version = 2.0.1;
 			};
 		};
+		CC0000000000000000000004 /* XCRemoteSwiftPackageReference "onnxruntime-libs" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/csukuangfj/onnxruntime-libs";
+			requirement = {
+				kind = exactVersion;
+				version = 1.28.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -369,6 +449,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CC0000000000000000000003 /* XCRemoteSwiftPackageReference "sherpa-onnx" */;
 			productName = "sherpa-onnx";
+		};
+		CC0000000000000000000005 /* onnxruntime-ios */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CC0000000000000000000004 /* XCRemoteSwiftPackageReference "onnxruntime-libs" */;
+			productName = "onnxruntime-ios";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
