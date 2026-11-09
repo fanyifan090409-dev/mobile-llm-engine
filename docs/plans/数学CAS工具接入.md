@@ -196,3 +196,16 @@ iOS 入口（2026-11-08 补）：
 - 四组历史输出用修复后判分重评：v5+v7b **58/69**（不变）、v5+v7c 56（不变）、v6 55（不变）、v7 **58→57**（17 题是假阳）。
 - 结论：v5 + v7b 是真实最优，v6/v7 及其提示词改动全部回滚（三处提示词恢复 v7b），v7 产物清理；
   提示词层面的补丁（面积顺序/平均值/二阶导/等比）对 1.7B 不奏效，不再加长 system prompt。
+
+### iOS 演示壳接入（2026-11-09，AIY Demo 用）
+
+- `MathEvalTool.swift` 通过 pbxproj 相对路径引用进 iOS target（与 `MathEvalEngine.swift` 同款，不复制代码）；
+  `DemoChatView.loadModel()` 启动时注册进 registry（harness/bench 不注册），每轮请求按白名单决定是否启用：
+  模型文件名含 `sft27` 时 `tools=["math_eval"]`、temperature 0.2，其余请求保持原白名单（calendar/dispatch），
+  因此中途切模型可用，且不改变领队模型的 system 口径（16/16 回归可比）。
+- iOS 必须用 `MathEvalEngine(resourceDirectory: "Math")`（Xcode App 是 Math/ 文件夹引用，不是 SPM module bundle）；
+  两份 `MathEvalBridge.js` 已校验 sha256 一致。
+- 同款 EngineKit 工具环 Mac 实测（SFT27e Q4_K_M）：解方程/极限/导数三题全部真调工具并回填正确；
+  **SFT27e 直调日历不可靠**（日期写错、漏 end_time），**SFT20 领队零样本调 math_eval 失败**（复读示例 `eval x^2+3*x`）。
+  演示分模型：助理段用领队+工人（16/16），数学段单模型 SFT27e；数学放最后，避免演示中途切回。
+- 模型上机：`qwen3-1.7b-sft27e-cas-Q4_K_M.gguf`（1.2G）导入手机模型库，文件名必须含 `sft27` 才启用 math_eval。

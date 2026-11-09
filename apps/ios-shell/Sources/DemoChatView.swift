@@ -439,6 +439,10 @@ final class DemoModel {
             // harness 模式跳过日历确认弹窗（自动回归）；演示模式保持每次人工确认
             try engine.registerTool(CalendarTool(autoConfirm: Self.harnessRequested))
             try engine.registerTool(ReminderTool())
+            // math_eval 只注册进 registry，不主动进提示词：每轮请求按白名单决定是否启用（见 runGeneration）
+            if !Self.harnessRequested && !Self.benchRequested {
+                try engine.registerTool(MathEvalTool(engine: MathEvalEngine(resourceDirectory: "Math")))
+            }
         } catch { log.log("工具注册失败：\(error)") }
         log.log("开始装载模型…")
 
@@ -830,12 +834,13 @@ final class DemoModel {
         history.append(Message(role: "user", content: content))
         log.log("开始生成：\(content)")
         messages.append(ChatMessage(role: .user, text: text))
+        let mathModel = currentModelURL?.lastPathComponent.contains("sft27") == true
         let steps = multi
             ? [ProcessStep(title: "领队理解", detail: nil, state: .active, elapsed: nil),
                ProcessStep(title: "工人执行", detail: nil, state: .pending, elapsed: nil),
                ProcessStep(title: "汇总回复", detail: nil, state: .pending, elapsed: nil)]
             : [ProcessStep(title: "理解意图", detail: nil, state: .active, elapsed: nil),
-               ProcessStep(title: usesTools ? "调用工具" : "组织回复", detail: nil, state: .pending, elapsed: nil),
+               ProcessStep(title: (usesTools || mathModel) ? "调用工具" : "组织回复", detail: nil, state: .pending, elapsed: nil),
                ProcessStep(title: "执行结果", detail: nil, state: .pending, elapsed: nil)]
         let workflow: WorkflowTrace? = (multi && workflowVisualizationEnabled)
             ? WorkflowTrace(startedAt: sendAt)
@@ -855,12 +860,13 @@ final class DemoModel {
         var sawTool = false
         var toolEvent: ToolCallEvent?
         let multi = multiModelActive
+        let mathModel = currentModelURL?.lastPathComponent.contains("sft27") == true
         do {
             for try await event in engine.generate(GenerationRequest(
                 messages: requestMessages(multi: multi),
-                maxTokens: 256, temperature: 0.7,
+                maxTokens: 256, temperature: mathModel ? 0.2 : 0.7,
                 speed: Self.benchRequested ? .balanced : speedTier,
-                tools: multi ? ["dispatch_to_worker"] : (usesTools ? ["add_calendar_event"] : nil))) {
+                tools: multi ? ["dispatch_to_worker"] : (mathModel ? ["math_eval"] : (usesTools ? ["add_calendar_event"] : nil)))) {
                 switch event {
                 case .token(let t):
                     if !sawToken {
