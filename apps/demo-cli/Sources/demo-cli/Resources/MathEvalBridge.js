@@ -194,6 +194,62 @@ function __casEval(op, expr, variable, lower, upper, statOp, data) {
         numeric = true;
         break;
       }
+      case 'limit': {
+        // 数值极限：有限点双侧逼近，无穷用大值序列看收敛；不追求符号精确，结果标「数值解」
+        const c = math.compile(rename(sanitize(expr)));
+        const f = (t) => {
+          const sc = {}; sc[VAR] = t;
+          const r = c.evaluate(sc);
+          return typeof r === 'number' ? r : NaN;
+        };
+        // 收敛判定：末三个有限值差值应收缩，且尾部足够接近
+        const converge = (vals) => {
+          const finite = vals.filter(Number.isFinite);
+          if (finite.length < 4) return null;
+          const last = finite.slice(-3);
+          if (Math.abs(last[2] - last[1]) > Math.abs(last[1] - last[0]) + 1e-13) return null;
+          return Math.abs(last[2] - last[1]) <= 1e-4 * Math.max(1, Math.abs(last[2])) ? last[2] : null;
+        };
+        const raw = String(lower == null ? '' : lower).trim().toLowerCase();
+        const negInf = /^-/.test(raw) && /(inf|infinity|∞|无穷)/.test(raw);
+        const posInf = !negInf && /(inf|infinity|∞|无穷)/.test(raw);
+        let value, where;
+        if (posInf || negInf) {
+          const sgn = negInf ? -1 : 1;
+          value = converge([1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9].map(k => f(sgn * k)));
+          where = sgn > 0 ? 'x→∞' : 'x→-∞';
+          if (value === null) throw new Error('极限不存在或发散（无穷远处不收敛）');
+        } else {
+          const a = bound(lower, 0);
+          const eps = [1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8];
+          const lv = converge(eps.map(e => f(a - e)));
+          const rv = converge(eps.map(e => f(a + e)));
+          if (lv === null || rv === null) throw new Error('极限无法确定（可能发散或未定义）');
+          if (Math.abs(lv - rv) > 1e-4 * Math.max(1, Math.abs(lv), Math.abs(rv))) {
+            throw new Error('左右极限不相等，极限不存在');
+          }
+          value = (lv + rv) / 2;
+          where = 'x→' + a;
+        }
+        // 优先给漂亮分数（3/5、1/2），否则保留 10 位有效数字
+        const nice = (x) => {
+          if (Math.abs(x) < 1e-12) return '0';
+          for (let q = 1; q <= 10000; q++) {
+            const p = Math.round(x * q);
+            if (Math.abs(x - p / q) <= 1e-6 * Math.max(1, Math.abs(x))) {
+              let a = Math.abs(p), b = q;
+              while (b) { const t = a % b; a = b; b = t; }
+              const num = p / (a || 1), den = q / (a || 1);
+              return den === 1 ? String(num) : num + '/' + den;
+            }
+          }
+          return math.format(x, { precision: 10 });
+        };
+        result = nice(value);
+        numeric = true;
+        latex = where + ' 时极限 ≈ ' + result;
+        break;
+      }
       case 'stats': {
         if (statOp === 'regression') {
           const pts = String(data || '').split(';').map(s => s.split(/[, ]+/).filter(Boolean).map(Number));

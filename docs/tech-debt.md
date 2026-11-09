@@ -67,3 +67,9 @@
 - **提示词三处副本**：`MathEvalTool.swift` / `gen_math_eval_sft.py` / `eval_math_e2e.py` 必须逐字一致，改一处要同步三处并重生成数据。
 - **两份 math.js**：CLI 与 iOS 各存一份；bridge 已同步，math.js 升级时仍需 sha256 校验。
 - **评测脚本**：`score_math_eval.py` 的隐式乘法/LaTeX 兼容改动会同时影响历史分数，引用旧分数时注意口径。
+
+## 10. limit 是数值实现，不是符号证明（2026-11-09）
+
+- **能力边界**：`op=limit` 用 ε 逼近/大值采样 + 收敛判定；振荡函数可能误判，无穷远发散靠采样，不做符号推导。
+- **调用约定**：limit 复用 `lower` 作趋近点（`inf/-inf/数值`），不是独立参数；提示词三处副本必须同步。
+- **误用风险**：v5 在「闭区间最值」题上把 limit 当成解最值工具；后续若补最值训练，需显式区分 derivative/solve 与 limit。

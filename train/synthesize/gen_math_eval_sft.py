@@ -25,8 +25,8 @@ USAGE_PROMPT = (
     "你是数学助手。遇到需要精确计算时，第一步只输出一个工具调用块，不要输出其他内容，格式：\n"
     '<tool_call>\n{"name": "math_eval", "arguments": {"op": "eval", "expr": "x^2+3*x"}}\n</tool_call>\n'
     "expr 用 math.js 语法：乘方 ^、乘法 *、函数 sin(x)/cos(x)/exp(x)/log(x)/log(x, 底数)；不要用 LaTeX 的 {}、\\frac、\\log_2。\n"
-    "op 可选 eval（求值）/ derivative（求导）/ simplify（化简）/ integrate_def（定积分）/ solve（解方程）/ stats（统计）。"
-    'solve 可写 "x^2-5x+6=0"；积分与解方程用 lower/upper 给区间（可写 pi/2）；'
+    "op 可选 eval（求值）/ derivative（求导）/ simplify（化简）/ integrate_def（定积分）/ solve（解方程）/ limit（求极限）/ stats（统计）。"
+    'solve 可写 "x^2-5x+6=0"；积分与解方程用 lower/upper 给区间（可写 pi/2）；limit 用 lower 给趋近点（可写 inf/-inf）；'
     "stats 用 stat_op 与 data：mean/median/variance/std/variance_pop/std_pop/iqr/sum/min/max/combination/permutation/binomial/regression/normalcdf，"
     'data 逗号分隔，regression 用 "x1,y1;x2,y2"，normalcdf 用 "mu,sigma,x"。'
     "解题约定：面积先判断哪条曲线在上方，再用上曲线减下曲线积分；平均值 = 定积分 ÷ 区间长度；"
@@ -126,6 +126,8 @@ def explain(category, result, case):
         return f"解得 x = {result}（数值解）。"
     if category == "area":
         return f"面积为 {result}。"
+    if category == "limit":
+        return f"极限值为 {result}（数值解）。"
     if category == "stats":
         label = case.get("stat_label", "结果")
         if case["check"]["kind"] == "pick":
@@ -1014,6 +1016,68 @@ def gen_v4_targeted(cases):
                         {"kind": "num", "value": float(value), "tol": 1e-6}))
 
 
+def gen_limit(cases):
+    """数值极限：有理式抓最高次、0/0 约分、多项式代值、sin(kx)/x。"""
+    blocked = eval_problem_set()
+
+    # 有理函数 x→∞：系数比 a/d
+    made, guard = 0, 0
+    while made < 12 and guard < 4000:
+        guard += 1
+        a, d = random.choice([(1, 1), (1, 2), (2, 1), (2, 3), (3, 2),
+                              (3, 4), (2, 5), (4, 3), (3, 5), (5, 2)])
+        b, c = random.randint(-6, 6), random.randint(-9, 9)
+        e, f = random.randint(-6, 6), random.randint(-9, 9)
+        num = [(a, 2), (b, 1), (c, 0)]
+        den = [(d, 2), (e, 1), (f, 0)]
+        problem = (f"求极限 $\\lim_{{x\\to\\infty}}\\frac{{{poly_tex(num)}}}"
+                   f"{{{poly_tex(den)}}}$。")
+        if problem in blocked:
+            continue
+        made += int(add(cases, "limit", problem,
+                        {"op": "limit", "expr": f"({poly_str(num)})/({poly_str(den)})",
+                         "lower": "inf"},
+                        {"kind": "num", "value": a / d, "tol": 1e-6}))
+
+    # 0/0 型：x→a 时 (x²-a²)/(x-a) = 2a
+    made, guard = 0, 0
+    while made < 10 and guard < 3000:
+        guard += 1
+        a = random.randint(2, 9)
+        problem = f"求极限 $\\lim_{{x\\to {a}}}\\frac{{x^{{2}}-{a * a}}}{{x-{a}}}$。"
+        if problem in blocked:
+            continue
+        made += int(add(cases, "limit", problem,
+                        {"op": "limit", "expr": f"(x^2-{a * a})/(x-{a})", "lower": str(a)},
+                        {"kind": "num", "value": float(2 * a), "tol": 1e-6}))
+
+    # 多项式在有限点：直接代值
+    made, guard = 0, 0
+    while made < 5 and guard < 2000:
+        guard += 1
+        a = random.randint(-3, 3)
+        terms = [(random.choice([-3, -2, -1, 1, 2, 3]), p) for p in random.sample([0, 1, 2, 3], k=3)]
+        value = sum(c * (a ** p) for c, p in terms)
+        problem = f"求极限 $\\lim_{{x\\to {a}}}({poly_tex(terms)})$。"
+        if problem in blocked:
+            continue
+        made += int(add(cases, "limit", problem,
+                        {"op": "limit", "expr": poly_str(terms), "lower": str(a)},
+                        {"kind": "num", "value": float(value), "tol": 1e-6}))
+
+    # sin(kx)/x → k
+    made, guard = 0, 0
+    while made < 3 and guard < 1000:
+        guard += 1
+        k = random.choice([2, 3, 4, 5])
+        problem = f"求极限 $\\lim_{{x\\to 0}}\\frac{{\\sin({k}x)}}{{x}}$。"
+        if problem in blocked:
+            continue
+        made += int(add(cases, "limit", problem,
+                        {"op": "limit", "expr": f"sin({k}*x)/x", "lower": "0"},
+                        {"kind": "num", "value": float(k), "tol": 1e-6}))
+
+
 def verify(case, result):
     check = case["check"]
     if result.get("status") != "ok":
@@ -1085,6 +1149,7 @@ def main():
     gen_area(cases)
     gen_v3_targeted(cases)
     gen_v4_targeted(cases)
+    gen_limit(cases)
 
     req_path = os.path.join(OUTDIR, "requests.jsonl")
     res_path = os.path.join(OUTDIR, "results.jsonl")
