@@ -115,9 +115,9 @@ def gen_cases():
              lambda _, a=a, slope=slope: f"将 x = {a} 代入 f'(x)，得到切线斜率为 {slope}。\n【答案】{slope}")
         n += len(cases) - before
 
-    # 3) 二阶导数
+    # 3) 二阶导数（f'' 必须连续调两次 derivative）
     n, guard = 0, 0
-    while n < 30 and guard < 3000:
+    while n < 60 and guard < 5000:
         guard += 1
         deg = random.choice([3, 4])
         f = [(random.choice([-3, -2, -1, 1, 2, 3]), p) for p in range(deg, -1, -1)]
@@ -146,13 +146,13 @@ def gen_cases():
         before = len(cases)
         push("average", problem,
              [{"op": "integrate_def", "expr": poly_str(f), "lower": str(a), "upper": str(b)}],
-             {"kind": "num", "value": float(avg), "b_minus_a": b - a},
+             {"kind": "num", "value": float(avg), "a": a, "b": b},
              lambda res: f"平均值 = 定积分 ÷ 区间长度 = {res[-1]['result']}。\n【答案】{res[-1]['result']}")
         n += len(cases) - before
 
     # 5) 复合函数：先算内层值，再把结果代入外层
     n, guard = 0, 0
-    while n < 30 and guard < 4000:
+    while n < 60 and guard < 6000:
         guard += 1
         a = random.randint(1, 4)
         b, c = random.choice([2, 3, 4]), random.randint(-5, 5)
@@ -191,7 +191,8 @@ def add_step2(cases, step1_results):
             c["steps"].append({"op": "derivative", "expr": first,
                                "expected_expr": c["expected"]["expected_expr"]})
         elif c["kind"] == "average":
-            c["steps"].append({"op": "eval", "expr": f"({first})/({c['expected']['b_minus_a']})"})
+            c["steps"].append({"op": "eval",
+                               "expr": f"({first})/({c['expected']['b']}-({c['expected']['a']}))"})
         elif c["kind"] == "compose":
             if c["expected"]["outer_f"]:
                 c["steps"].append({"op": "eval",

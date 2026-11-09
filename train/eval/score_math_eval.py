@@ -160,6 +160,9 @@ def candidates(block):
         out.extend(parse_seg(m.group(1)))
     if not out:
         for m in NUMBER.finditer(block):
+            # f'(2) / sin(3) 括号里的数字不是答案；只认独立数字
+            if re.search(r"[A-Za-z]'?\($", block[:m.start()].rstrip()):
+                continue
             obj = parse_one(m.group(0))
             if obj is not None:
                 out.append(obj)

@@ -984,10 +984,10 @@ def gen_v4_targeted(cases):
 
     # 等比数列：首项 a、公比 r，末项 a*r^k，共 k+1 项
     made, guard = 0, 0
-    while made < 30 and guard < 3000:
+    while made < 60 and guard < 6000:
         guard += 1
-        a, r = random.choice([1, 2, 3]), random.choice([2, 3])
-        k = random.randint(6, 12)
+        a, r = random.choice([1, 2, 3, 4]), random.choice([2, 3])
+        k = random.randint(4, 12)
         problem = (f"求 ${a}+{a * r}+{a * r ** 2}+\\cdots+{a * r ** k}$ 的和。")
         if problem in blocked:
             continue
