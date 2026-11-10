@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>团队工作流 — 三个人，三个智能体</title>
+<style>
+  :root{
+    --navy:#0B1B2B; --navy2:#13293D; --blue:#1E6BFF; --ice:#DCE8F5;
+    --white:#fff; --rust:#B24A32; --mute:rgba(220,232,245,.52);
+    --line:rgba(220,232,245,.13); --card:rgba(255,255,255,.035);
+    --s:1;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#04090F;overflow:hidden}
+  body{display:flex;align-items:center;justify-content:center;
+       font-family:"PingFang SC","Helvetica Neue",Arial,sans-serif;
+       -webkit-font-smoothing:antialiased}
+  .stage{
+    width:1600px;height:900px;position:relative;flex:none;
+    transform:scale(var(--s));transform-origin:center center;
+    color:var(--white);overflow:hidden;isolation:isolate;
+  }
+  /* ---------- 背景：渐变 + 弥散光 + 细环 + 点阵 + 颗粒 + 暗角 ---------- */
+  .bg{position:absolute;inset:0;z-index:0;
+    background:
+      radial-gradient(ellipse 52% 60% at 80% 14%, rgba(30,107,255,.34), transparent 62%),
+      radial-gradient(ellipse 46% 50% at 6% 96%, rgba(22,104,96,.16), transparent 64%),
+      linear-gradient(134deg,#0C1D2E 0%,#0B1B2B 46%,#050D17 100%);
+  }
+  .bg::before{content:"";position:absolute;inset:0;
+    background:repeating-radial-gradient(circle at 80% 14%,
+      rgba(220,232,245,.055) 0 1px, transparent 1px 84px);
+    mask-image:radial-gradient(circle at 80% 14%, #000 0%, transparent 62%);
+  }
+  .bg::after{content:"";position:absolute;inset:0;
+    background-image:radial-gradient(circle at 1px 1px, rgba(220,232,245,.16) 1px, transparent 0);
+    background-size:26px 26px;
+    mask-image:linear-gradient(100deg, transparent 34%, #000 78%);
+    opacity:.5;
+  }
+  .grain{position:absolute;inset:0;z-index:1;opacity:.055;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");}
+  .vig{position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 46%, transparent 38%, rgba(2,6,11,.66) 100%);}
+
+  /* ---------- 版式 ---------- */
+  .pad{position:relative;z-index:3;height:100%;padding:58px 72px 46px;
+       display:flex;flex-direction:column}
+  .kicker{font-size:12px;letter-spacing:.26em;font-weight:600;color:var(--blue);text-transform:uppercase}
+  h1{margin-top:16px;font-size:52px;line-height:1.16;font-weight:600;letter-spacing:-.015em}
+  h1 em{font-style:normal;color:var(--blue)}
+  .sub{margin-top:14px;font-size:15px;line-height:1.6;color:var(--mute);letter-spacing:.01em}
+
+  /* 守则横条 */
+  .rulebar{margin-top:34px;display:flex;align-items:center;gap:14px}
+  .rulebar .hair{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line) 18%,var(--line) 82%,transparent)}
+  .rulebar .tag{flex:none;font-size:12.5px;color:var(--ice);letter-spacing:.06em;
+    border:1px solid var(--line);padding:7px 16px;background:rgba(30,107,255,.10)}
+  .rulebar .tag b{color:var(--blue);font-weight:600}
+
+  /* 三条泳道 */
+  .lanes{margin-top:30px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .lane{position:relative;padding:24px 24px 22px;background:var(--card);
+    border:1px solid var(--line);backdrop-filter:blur(6px)}
+  .lane.leader{border-color:rgba(30,107,255,.34);background:rgba(30,107,255,.07)}
+  .lane .no{font-family:"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.14em;color:var(--blue)}
+  .lane h2{margin-top:9px;font-size:21px;font-weight:600;letter-spacing:.01em}
+  .lane .role{margin-top:5px;font-size:12.5px;color:var(--mute);letter-spacing:.03em}
+  .chipline{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .chip{display:inline-flex;align-items:center;gap:7px;
+    font-size:11.5px;color:var(--ice);border:1px solid var(--line);
+    padding:5px 10px;background:rgba(220,232,245,.05)}
+  .chip i{width:5px;height:5px;background:var(--blue);display:block;border-radius:50%;
+    box-shadow:0 0 0 3px rgba(30,107,255,.18)}
+  .path{font-family:"SF Mono",Menlo,monospace;font-size:10px;letter-spacing:.02em;
+    color:rgba(220,232,245,.52);white-space:nowrap}
+  .pair{margin-top:19px;padding-top:15px;border-top:1px solid var(--line)}
+  .pair + .pair{margin-top:13px;padding-top:13px}
+  .pair dt{font-size:11px;letter-spacing:.05em;color:var(--mute)}
+  .pair dd{margin-top:5px;font-size:13.5px;line-height:1.55;color:var(--ice)}
+  .pair.human dt{color:var(--rust);opacity:.95}
+  .pair.human dd{color:var(--white);font-weight:500}
+
+  /* 流水线 */
+  .flowlabel{margin-top:34px;font-size:11px;letter-spacing:.2em;color:var(--mute)}
+  .flow{margin-top:14px;display:grid;grid-template-columns:repeat(5,1fr);
+        align-items:stretch;position:relative}
+  .node{position:relative;padding:16px 16px 15px 18px;border:1px solid var(--line);
+        background:rgba(255,255,255,.028)}
+  .node + .node{margin-left:14px}
+  .node::before{content:"";position:absolute;left:-14px;top:50%;width:14px;height:1px;
+    background:rgba(30,107,255,.42)}
+  .node::after{content:"";position:absolute;left:-2px;top:calc(50% - 4px);
+    border:4px solid transparent;border-left-color:rgba(30,107,255,.75)}
+  .node:first-child::before,.node:first-child::after{display:none}
+  .node .n{font-family:"SF Mono",Menlo,monospace;font-size:10.5px;letter-spacing:.12em;color:var(--blue)}
+  .node .t{margin-top:7px;font-size:14.5px;font-weight:600;letter-spacing:.01em}
+  .node .d{margin-top:6px;font-size:11.5px;line-height:1.5;color:var(--mute)}
+  .node.end{border-color:rgba(30,107,255,.45);background:rgba(30,107,255,.10)}
+  .node.end .t{color:#fff}
+
+  /* 底部规则 */
+  .foot{margin-top:auto;padding-top:26px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+  .pills{display:flex;gap:0;flex-wrap:wrap}
+  .pill{font-size:12px;color:var(--mute);padding:0 18px;border-left:1px solid var(--line)}
+  .pill:first-child{padding-left:0;border-left:0}
+  .pill b{color:var(--ice);font-weight:500}
+  .mark{font-size:10.5px;letter-spacing:.16em;color:rgba(220,232,245,.34);
+        font-family:"SF Mono",Menlo,monospace;white-space:nowrap}
+
+  /* 入场 */
+  .rise{opacity:0;transform:translateY(10px);animation:rise .7s cubic-bezier(.22,.7,.2,1) forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .d1{animation-delay:.05s}.d2{animation-delay:.14s}.d3{animation-delay:.24s}
+  .d4{animation-delay:.34s}.d5{animation-delay:.44s}.d6{animation-delay:.54s}
+  .d7{animation-delay:.64s}
+  @media (prefers-reduced-motion:reduce){
+    .rise{opacity:1;transform:none;animation:none}
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="bg"></div><div class="grain"></div><div class="vig"></div>
+
+  <div class="pad">
+    <div class="kicker rise d1">AIY 27 / COLLABORATION</div>
+    <h1 class="rise d2">三个人，三个智能体，<br><em>一条评审链。</em></h1>
+    <p class="sub rise d3">队长把产品做出来，队员证明它能跑、别人用得起来。每个产出都经 PR 评审后合并。</p>
+
+    <div class="rulebar rise d3">
+      <div class="hair"></div>
+      <div class="tag">唯一指令源 · <b>《智能体协作守则》</b> 三人三智能体共用</div>
+      <div class="hair"></div>
+    </div>
+
+    <div class="lanes rise d4">
+      <div class="lane leader">
+        <div class="no">01 / LEADER</div>
+        <h2>樊一凡</h2>
+        <div class="role">架构 · 引擎 · 训练 · 发布</div>
+        <div class="chipline"><div class="chip"><i></i>智能体</div><div class="path">engine / apps / train</div></div>
+        <dl class="pair"><dt>智能体做</dt><dd>代码骨架、调试、批量数据处理、文档初稿</dd></dl>
+        <dl class="pair human"><dt>人做</dt><dd>架构决策、训练判断、最终评审与合并</dd></dl>
+      </div>
+
+      <div class="lane">
+        <div class="no">02 / QUALITY</div>
+        <h2>张曜阳</h2>
+        <div class="role">质量 · 首次安装体验</div>
+        <div class="chipline"><div class="chip"><i></i>智能体</div><div class="path">docs/aiy27/qa/</div></div>
+        <dl class="pair"><dt>智能体做</dt><dd>整理卡点记录、汇总共性问题</dd></dl>
+        <dl class="pair human"><dt>人做</dt><dd>亲手装一遍、逐步记录卡点</dd></dl>
+      </div>
+
+      <div class="lane">
+        <div class="no">03 / VALIDATION</div>
+        <h2>薛亦湘</h2>
+        <div class="role">用户验证 · 演示 · 数据核对</div>
+        <div class="chipline"><div class="chip"><i></i>智能体</div><div class="path">docs/aiy27/demo/</div></div>
+        <dl class="pair"><dt>智能体做</dt><dd>整理访谈记录、起草分镜脚本、生成核对表框架</dd></dl>
+        <dl class="pair human"><dt>人做</dt><dd>组织同学试用、记录原话、逐条核对数字来源</dd></dl>
+      </div>
+    </div>
+
+    <div class="flowlabel rise d5">WORKFLOW / 一件任务的全过程</div>
+    <div class="flow rise d6">
+      <div class="node"><div class="n">01</div><div class="t">Issue 任务单</div><div class="d">目标 · 交付路径 · 验收标准 · 证据要求</div></div>
+      <div class="node"><div class="n">02</div><div class="t">独立分支</div><div class="d">一人一支 · 按目录划分所有权</div></div>
+      <div class="node"><div class="n">03</div><div class="t">提交 PR</div><div class="d">附截图 / 原话 / 来源位置 · 写明 AI 参与</div></div>
+      <div class="node"><div class="n">04</div><div class="t">队长评审</div><div class="d">逐条对验收标准，打回或批准</div></div>
+      <div class="node end"><div class="n">05</div><div class="t">合并 main</div><div class="d">PR 编号写进协作记录</div></div>
+    </div>
+
+    <div class="foot rise d7">
+      <div class="pills">
+        <div class="pill"><b>路径所有权</b>　qa / demo 归队员，主线归队长</div>
+        <div class="pill"><b>证据可复现</b>　看截图与原话，不看结论</div>
+        <div class="pill"><b>参与披露</b>　Assisted-by 尾注</div>
+      </div>
+      <div class="mark">2026 · AIY HACK LEAGUE</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function fit(){
+    var s = Math.min(innerWidth / 1600, innerHeight / 900);
+    document.documentElement.style.setProperty('--s', s);
+  }
+  addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>
