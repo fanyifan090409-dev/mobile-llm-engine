@@ -49,4 +49,7 @@ train/eval/private/
 # 误放的私有产物副本（2026-11-08 发现 train/train 嵌套目录，含真题答案，不入库）
 train/train/
 
+# 本地私有：队员联系方式、邀请信息等，公开仓库不得包含
+.local/
+
 train/synthesize/out_*/
